@@ -1,0 +1,652 @@
+<title>Al Nimr Steel Yard WMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#FFFFFF; --ground:#E9EDF0; --band:#F4F6F8;
+  --ink:#0F1418; --ink2:#44505A; --muted:#6E7B85;
+  --rule:#DCE2E6; --rule2:#C2CBD1;
+  --red:#C1272D; --redsoft:#FBEAEA;
+  --amber:#B87400; --ambersoft:#FCF0DA; --amberpure:#F2A31C;
+  --teal:#0A6B59; --tealsoft:#DFF0EC;
+  --dark:#12171C; --ondark:#F0F3F5; --ondark2:#98A5AE;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--ground); color:var(--ink); margin:0;
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:Archivo,"Helvetica Neue",Arial,sans-serif; margin:0; line-height:1.06; letter-spacing:-.025em; text-wrap:balance}
+p{margin:0}
+a{color:inherit}
+
+/* ============ deck mechanics ============ */
+.deck{scroll-snap-type:y mandatory; height:100svh; overflow-y:auto; overflow-x:hidden}
+.slide{
+  scroll-snap-align:start; scroll-snap-stop:always;
+  min-height:100svh; background:var(--paper); border-bottom:1px solid var(--rule);
+  display:flex; flex-direction:column; justify-content:center;
+  padding:82px 5vw 74px; position:relative;
+}
+.slide.dk{background:var(--dark); color:var(--ondark); border-bottom-color:#000}
+.slide.bnd{background:var(--band)}
+.inner{width:100%; max-width:1120px; margin:0 auto}
+
+/* persistent chrome */
+.chrome{
+  position:fixed; inset:0 0 auto 0; z-index:40; height:56px; display:flex; align-items:center; gap:14px;
+  padding:0 clamp(16px,5vw,44px); background:rgba(255,255,255,.86); backdrop-filter:blur(9px);
+  border-bottom:1px solid var(--rule); pointer-events:none;
+}
+.chrome .g{display:flex; align-items:center; gap:9px}
+.chrome img.gl{height:24px; width:auto; display:block}
+.chrome .gn{font-family:Archivo; font-weight:700; font-size:12px; letter-spacing:.02em; color:var(--ink)}
+.chrome .sep{flex:1}
+.chrome .client{display:flex; align-items:center; gap:9px}
+.chrome .client .lbl{font-family:"IBM Plex Mono"; font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
+.chrome img.cl{height:26px; width:auto; display:block}
+@media(max-width:640px){ .chrome .gn{display:none} .chrome .client .lbl{display:none} }
+
+.pager{
+  position:fixed; right:clamp(14px,4vw,32px); bottom:20px; z-index:41;
+  display:flex; align-items:center; gap:12px; pointer-events:auto;
+}
+.pager .cnt{font-family:"IBM Plex Mono"; font-size:11px; letter-spacing:.1em; color:var(--muted);
+  background:rgba(255,255,255,.9); border:1px solid var(--rule); border-radius:100px; padding:5px 12px}
+.pager button{
+  width:34px; height:34px; border-radius:100px; border:1px solid var(--rule); background:rgba(255,255,255,.9);
+  color:var(--ink); cursor:pointer; font-size:15px; line-height:1; display:grid; place-items:center; padding:0;
+}
+.pager button:hover{background:var(--ink); color:#fff; border-color:var(--ink)}
+.pager button:focus-visible{outline:2px solid var(--red); outline-offset:2px}
+.rail{position:fixed; left:0; top:0; height:3px; background:var(--red); z-index:45; width:0; transition:width .25s ease}
+@media print{ .chrome,.pager,.rail{display:none} .deck{height:auto;overflow:visible} .slide{min-height:0;page-break-after:always} }
+
+/* ============ slide furniture ============ */
+.tag{
+  font-family:"IBM Plex Mono"; font-size:11px; letter-spacing:.19em; text-transform:uppercase;
+  color:var(--red); display:flex; align-items:center; gap:11px; margin-bottom:20px;
+}
+.tag::after{content:""; flex:1; height:1px; background:var(--rule); max-width:140px}
+.dk .tag{color:var(--amberpure)} .dk .tag::after{background:#2A3238}
+h2.st{font-size:clamp(30px,4.6vw,52px); font-weight:700}
+.dk h2.st{color:var(--ondark)}
+.say{font-size:clamp(17px,1.6vw,20px); color:var(--ink2); max-width:66ch; margin-top:18px; line-height:1.55}
+.dk .say{color:var(--ondark2)}
+.fine{font-family:"IBM Plex Mono"; font-size:11.5px; color:var(--muted); line-height:1.65; margin-top:22px}
+.dk .fine{color:var(--ondark2)}
+
+/* ============ cover ============ */
+.cov h1{font-size:clamp(38px,7vw,78px); font-weight:800; letter-spacing:-.038em}
+.cov h1 b{color:var(--red); font-weight:800}
+.cov .kick{font-family:"IBM Plex Mono"; font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:var(--muted); margin-bottom:26px}
+.cov .say{margin-top:26px; font-size:clamp(17px,1.9vw,22px); color:var(--ink2); max-width:52ch}
+.cov .foot{
+  margin-top:clamp(36px,6vh,64px); padding-top:24px; border-top:1px solid var(--rule);
+  display:flex; align-items:flex-end; gap:clamp(24px,6vw,72px); flex-wrap:wrap;
+}
+.cov .foot .col .l{font-family:"IBM Plex Mono"; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:10px}
+.cov .foot .lock{display:flex; align-items:center; gap:12px}
+.cov .foot .lock img.gl{height:46px; width:auto}
+.cov .foot .lock .t{font-family:Archivo; font-weight:700; font-size:17px; line-height:1.2}
+.cov .foot .lock .t span{display:block; font-family:"IBM Plex Mono"; font-weight:400; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-top:4px}
+.cov .foot img.cl{height:46px; width:auto; display:block}
+
+/* ============ stats ============ */
+.stats{display:grid; grid-template-columns:repeat(6,1fr); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:3px; overflow:hidden; margin-top:36px}
+.stats div{background:var(--paper); padding:22px 18px}
+.stats .v{font-family:Archivo; font-weight:700; white-space:nowrap; font-size:clamp(20px,2.3vw,29px); letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.stats .k{font-family:"IBM Plex Mono"; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-top:6px; line-height:1.45}
+@media(max-width:900px){ .stats{grid-template-columns:repeat(3,1fr)} }
+@media(max-width:520px){ .stats{grid-template-columns:repeat(2,1fr)} }
+
+/* ============ reference wall ============ */
+.refwall{
+  background:var(--paper); border:1px solid var(--rule); border-radius:3px; padding:clamp(20px,3vw,34px);
+  display:grid; grid-template-columns:repeat(8,1fr); gap:clamp(20px,3vw,34px) 18px; align-items:center; justify-items:center; margin-top:34px;
+}
+.refwall img.ref{max-height:38px; width:auto; max-width:100%; filter:grayscale(1); opacity:.74}
+@media(max-width:900px){ .refwall{grid-template-columns:repeat(4,1fr)} }
+@media(max-width:520px){ .refwall{grid-template-columns:repeat(2,1fr)} .refwall img.ref{max-height:30px} }
+
+/* ============ statement slide ============ */
+.stmt .pre{font-size:clamp(17px,2vw,23px); color:var(--ondark2); max-width:34ch; line-height:1.45}
+.stmt h2{font-size:clamp(36px,6.4vw,76px); font-weight:800; letter-spacing:-.035em; margin-top:26px; max-width:17ch; color:var(--ondark)}
+.stmt h2 b{color:var(--amberpure); font-weight:800}
+.stmt .stripes{position:absolute; right:0; top:0; bottom:0; width:min(30vw,320px); opacity:.10}
+@media(max-width:760px){ .stmt .stripes{display:none} }
+
+/* ============ tiles ============ */
+.grid8{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:38px}
+@media(max-width:960px){ .grid8{grid-template-columns:repeat(2,1fr)} }
+@media(max-width:540px){ .grid8{grid-template-columns:1fr} }
+.tl{background:var(--paper); border:1px solid var(--rule); border-top:3px solid var(--tc,var(--amber)); border-radius:2px; padding:20px 19px 22px}
+.bnd .tl{background:var(--paper)}
+.tl b{display:block; font-family:Archivo; font-size:17px; font-weight:700; letter-spacing:-.015em; line-height:1.15}
+.tl span{display:block; font-size:14.5px; color:var(--ink2); margin-top:10px; line-height:1.5}
+
+.g3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:32px}
+@media(max-width:900px){ .g3{grid-template-columns:1fr} }
+.card{background:var(--paper); border:1px solid var(--rule); border-radius:3px; padding:22px}
+.card .ct{font-family:Archivo; font-weight:700; font-size:17px; letter-spacing:-.01em}
+.card .cb{font-size:14.5px; color:var(--ink2); margin-top:10px; line-height:1.6}
+.card .cb em{font-style:normal; color:var(--ink); font-weight:600}
+
+/* ============ figures ============ */
+.fig{background:var(--paper); border:1px solid var(--rule); border-radius:3px; padding:22px 24px 18px; margin-top:30px}
+.fig .fb{overflow-x:auto}
+.fig svg{display:block; min-width:480px; width:100%; height:auto}
+.fig .fc{margin-top:14px; padding-top:12px; border-top:1px solid var(--rule); font-family:"IBM Plex Mono"; font-size:11px; color:var(--muted); line-height:1.6}
+
+/* ============ two column compare ============ */
+.cmp{border:1px solid var(--rule); border-radius:3px; overflow:hidden; margin-top:34px; background:var(--paper)}
+.cmp .hd{display:grid; grid-template-columns:1fr 1fr; background:var(--band); border-bottom:1px solid var(--rule2)}
+.cmp .hd div{padding:12px 20px; font-family:"IBM Plex Mono"; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
+.cmp .hd div:first-child{color:var(--red)} .cmp .hd div:last-child{color:var(--teal)}
+.cmp .rw{display:grid; grid-template-columns:1fr 1fr; border-bottom:1px solid var(--rule)}
+.cmp .rw:last-child{border-bottom:0}
+.cmp .rw>div{padding:18px 20px; font-size:14.5px; line-height:1.55}
+.cmp .rw>div:first-child{border-right:1px solid var(--rule); color:var(--ink2)}
+.cmp .rw>div:last-child{color:var(--ink)}
+.cmp .rw b{display:block; font-family:Archivo; font-size:15px; font-weight:700; margin-bottom:6px; letter-spacing:-.01em}
+.cmp .rw>div:last-child b{color:var(--teal)}
+@media(max-width:820px){
+  .cmp .hd{display:none}
+  .cmp .rw{grid-template-columns:1fr}
+  .cmp .rw>div:first-child{border-right:0; border-bottom:1px dashed var(--rule2)}
+}
+
+/* ============ mechanism list ============ */
+.mech{display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:3px; overflow:hidden; margin-top:32px}
+.mech .m{background:var(--paper); padding:16px 18px; display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:start}
+.mech .m .n{font-family:"IBM Plex Mono"; font-size:11px; color:var(--red); padding-top:3px}
+.mech .m b{display:block; font-family:Archivo; font-size:15px; font-weight:700; letter-spacing:-.01em}
+.mech .m span{display:block; font-size:13.8px; color:var(--ink2); margin-top:5px; line-height:1.5}
+@media(max-width:820px){ .mech{grid-template-columns:1fr} }
+
+/* ============ roadmap ============ */
+.road{display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:3px; overflow:hidden; margin-top:34px}
+.road .ph{background:var(--paper); padding:20px 16px; display:flex; flex-direction:column; gap:9px}
+.road .wk{font-family:"IBM Plex Mono"; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--red)}
+.road .ph b{font-family:Archivo; font-size:17px; font-weight:700; letter-spacing:-.015em}
+.road .ph p{font-size:13.2px; color:var(--ink2); line-height:1.5}
+.road .ph .o{margin-top:auto; padding-top:11px; border-top:1px dashed var(--rule2); font-family:"IBM Plex Mono"; font-size:10.5px; color:var(--muted); line-height:1.5}
+@media(max-width:960px){ .road{grid-template-columns:1fr 1fr} }
+@media(max-width:560px){ .road{grid-template-columns:1fr} }
+
+/* ============ results ============ */
+.res{border:1px solid var(--rule); border-radius:3px; overflow:hidden; margin-top:34px; background:var(--paper)}
+.rr{display:grid; grid-template-columns:1.55fr 1fr 1fr; align-items:center; border-bottom:1px solid var(--rule)}
+.rr:last-child{border-bottom:0}
+.rr.h{background:var(--band)}
+.rr.h>div{font-family:"IBM Plex Mono"; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); padding:12px 20px}
+.rr>div{padding:16px 20px}
+.rr .m{font-size:15.5px; font-weight:500; color:var(--ink); font-family:Archivo; letter-spacing:-.01em}
+.rr .b{font-family:"IBM Plex Mono"; font-size:13.5px; color:var(--muted); font-variant-numeric:tabular-nums}
+.rr .a{font-family:"IBM Plex Mono"; font-size:15px; color:var(--teal); font-weight:500; font-variant-numeric:tabular-nums}
+@media(max-width:760px){
+  .rr{grid-template-columns:1fr 1fr}
+  .rr.h{display:none}
+  .rr .m{grid-column:1/-1; padding-bottom:2px}
+  .rr .b::before{content:"now "; color:var(--rule2)}
+  .rr .a::before{content:"target "; color:var(--rule2)}
+}
+
+/* ============ close ============ */
+.close .cg{margin-top:44px; padding-top:28px; border-top:1px solid #2A3238; display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:26px}
+.close .cg .l{font-family:"IBM Plex Mono"; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--ondark2); margin-bottom:9px}
+.close .cg .v{font-size:15px; line-height:1.65; color:var(--ondark)}
+.close .cg .v a{color:var(--ondark); text-decoration:none; border-bottom:1px solid #3A444C}
+
+/* client mark: real logo when supplied, plain type lockup until then */
+.cl-txt{display:block; line-height:1.15}
+.cl-txt b{display:block; font-family:Archivo,Arial,sans-serif; font-weight:800; font-size:14px; letter-spacing:-.01em; color:var(--ink)}
+.cl-txt i{display:block; font-style:normal; font-family:"IBM Plex Mono"; font-size:8.5px; letter-spacing:.18em; color:var(--muted); margin-top:2px}
+.cl-txt.lg b{font-size:26px} .cl-txt.lg i{font-size:10px; letter-spacing:.22em; margin-top:5px}
+.cl-txt.lg u{display:block; text-decoration:none; font-size:14px; color:var(--muted); margin-top:6px}
+
+@media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} *{transition:none!important} }
+</style>
+
+<div class="rail" id="rail"></div>
+<div class="chrome">
+  <div class="g"><img class="gl" src="{{GERAB}}" alt="Gerab System Solutions"><span class="gn">GERAB SYSTEM SOLUTIONS</span></div>
+  <div class="sep"></div>
+  <div class="client"><span class="lbl">For</span>{{ALNIMR_SM}}</div>
+</div>
+
+<div class="deck" id="deck">
+
+<!-- 1 COVER -->
+<section class="slide cov">
+  <div class="inner">
+    <div class="kick">Warehouse Management System</div>
+    <h1>Built for steel<br>stockholding,<br><b>not for cartons.</b></h1>
+    <p class="say">Insight WMS for open stockyards. Heat numbers, tonnage, yard location and mill certificates held on one system, and connected to your ERP.</p>
+    <div class="foot">
+      <div class="col">
+        <div class="l">Presented by</div>
+        <div class="lock">
+          <img class="gl" src="{{GERAB}}" alt="Gerab System Solutions">
+          <div class="t">Gerab System Solutions LLC<span>Business Applications</span></div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="l">Presented to</div>
+        {{ALNIMR_LG}}
+      </div>
+      <div class="col">
+        <div class="l">Date</div>
+        <div class="lock"><div class="t">Dubai, 2026</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 WHO WE ARE -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Who we are</div>
+    <h2 class="st">Part of the Gerab Group, trading in the UAE since 1977.</h2>
+    <p class="say">Gerab System Solutions is the IT company of the Group. The Group's other businesses include pipe, fitting and flange stockholding and open yard logistics, so warehouse and yard operations are familiar ground for us.</p>
+    <div class="stats">
+      <div><div class="v">1977</div><div class="k">Trading since</div></div>
+      <div><div class="v">850+</div><div class="k">People</div></div>
+      <div><div class="v">AED 1Bn+</div><div class="k">Group revenue</div></div>
+      <div><div class="v">10+</div><div class="k">Global locations</div></div>
+      <div><div class="v">550+</div><div class="k">Projects delivered</div></div>
+      <div><div class="v">95%+</div><div class="k">Customer retention</div></div>
+    </div>
+    <p class="fine">Group companies include Gerab National Enterprises, Flexigistic, Gerab Energy Systems, Samamat Flow Control, Artelliq and Gerab Systems Technology. Offices in the UAE, Saudi Arabia, Kuwait, Qatar, Oman, Iraq, India, China, South Korea and the USA.</p>
+  </div>
+</section>
+
+<!-- 3 REFERENCES -->
+<section class="slide bnd">
+  <div class="inner">
+    <div class="tag">References</div>
+    <h2 class="st">Companies already running on our systems.</h2>
+    <div class="refwall">
+{{REFS}}
+    </div>
+    <p class="fine">A selection from 550+ delivered projects across construction, precast, heavy fabrication, chemicals, manufacturing, trading and aviation. Full reference list and site visits available on request.</p>
+  </div>
+</section>
+
+<!-- 4 STATEMENT -->
+<section class="slide dk stmt">
+  <svg class="stripes" viewBox="0 0 200 400" preserveAspectRatio="none" aria-hidden="true">
+    <g fill="#F2A31C">
+      <path d="M40 0 L92 0 L58 400 L6 400 Z"></path>
+      <path d="M110 0 L138 0 L104 400 L76 400 Z"></path>
+      <path d="M158 0 L200 0 L200 400 L124 400 Z"></path>
+    </g>
+  </svg>
+  <div class="inner">
+    <p class="pre">A customer calls about a delivery you made six months ago and asks for the mill certificate.</p>
+    <h2>How long does <b>that take</b> today?</h2>
+  </div>
+</section>
+
+<!-- 5 CERT CHAIN -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">The certificate</div>
+    <h2 class="st">The certificate has to be found, because it was never attached to the steel.</h2>
+    <div class="fig">
+      <div class="fb">
+        <svg viewBox="0 0 900 262" role="img" aria-label="Manual certificate retrieval passes through five steps and can take up to two days. With the system it is one lookup taking under a minute.">
+          <g font-family="IBM Plex Sans, sans-serif">
+            <text x="0" y="12" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="1.6" fill="#C1272D">TODAY</text>
+            <g fill="#FCF0DA" stroke="#B87400" stroke-width="1">
+              <rect x="0" y="30" width="152" height="50" rx="2"></rect>
+              <rect x="178" y="30" width="152" height="50" rx="2"></rect>
+              <rect x="356" y="30" width="152" height="50" rx="2"></rect>
+              <rect x="534" y="30" width="152" height="50" rx="2"></rect>
+              <rect x="712" y="30" width="188" height="50" rx="2"></rect>
+            </g>
+            <g font-size="13" fill="#0F1418">
+              <text x="14" y="53">Find the delivery note</text>
+              <text x="192" y="53">Trace the invoice</text>
+              <text x="370" y="53">Open the purchase file</text>
+              <text x="548" y="53">Email the supplier</text>
+              <text x="726" y="53">Search for the PDF</text>
+            </g>
+            <g font-size="11" font-family="IBM Plex Mono, monospace" fill="#6E7B85">
+              <text x="14" y="70">20 min</text><text x="192" y="70">30 min</text><text x="370" y="70">45 min</text>
+              <text x="548" y="70">4 h to 2 days</text><text x="726" y="70">no fixed time</text>
+            </g>
+            <g fill="#C2CBD1">
+              <path d="M158 49 l14 6 -14 6 z"></path><path d="M336 49 l14 6 -14 6 z"></path>
+              <path d="M514 49 l14 6 -14 6 z"></path><path d="M692 49 l14 6 -14 6 z"></path>
+            </g>
+            <rect x="0" y="98" width="900" height="34" rx="2" fill="#FBEAEA"></rect>
+            <text x="14" y="120" font-size="13" fill="#C1272D" font-weight="600">If the certificate cannot be produced, the consultant holds the certification and payment slips a cycle.</text>
+
+            <text x="0" y="176" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="1.6" fill="#0A6B59">WITH INSIGHT</text>
+            <rect x="0" y="192" width="452" height="58" rx="2" fill="#DFF0EC" stroke="#0A6B59" stroke-width="1"></rect>
+            <text x="16" y="216" font-size="14" fill="#0F1418" font-weight="600">Scan the delivery note, the certificate opens</text>
+            <text x="16" y="236" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="#0A6B59">Under a minute, from a phone in the yard</text>
+            <line x1="480" y1="192" x2="480" y2="250" stroke="#DCE2E6"></line>
+            <text x="500" y="214" font-size="13.5" fill="#44505A">The certificate is attached to the piece when it is</text>
+            <text x="500" y="234" font-size="13.5" fill="#44505A">received, so finding it later is a lookup, not a search.</text>
+          </g>
+        </svg>
+      </div>
+      <div class="fc">The retrieval time is the visible part. The real gap is that nothing connects a piece of steel in the yard to the document that certifies it.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 EIGHT PAINS -->
+<section class="slide bnd">
+  <div class="inner">
+    <div class="tag">Where a normal WMS falls short on steel</div>
+    <h2 class="st">Eight things that behave differently in a stockyard.</h2>
+    <div class="grid8">
+      <div class="tl" style="--tc:var(--red)"><b>Heat number and certificate</b><span>Certificates sit in files, not on the steel.</span></div>
+      <div class="tl" style="--tc:var(--red)"><b>Pieces and tonnage</b><span>Sold in MT, moved in pieces. One unit is not enough.</span></div>
+      <div class="tl" style="--tc:var(--amber)"><b>Offcuts</b><span>Cut pieces leave the books, then get bought again.</span></div>
+      <div class="tl" style="--tc:var(--amber)"><b>Yard location</b><span>The stack location lives in someone's memory.</span></div>
+      <div class="tl" style="--tc:var(--amber)"><b>Stock aging</b><span>Old tonnage at old prices sits unnoticed.</span></div>
+      <div class="tl" style="--tc:var(--red)"><b>Quoting</b><span>Sales quotes from yesterday's stock figure.</span></div>
+      <div class="tl" style="--tc:var(--red)"><b>Blocked stock</b><span>Project stock is held by word of mouth.</span></div>
+      <div class="tl" style="--tc:var(--amber)"><b>Counting</b><span>Wall to wall counts stop the yard for days.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 DUAL UOM -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Pieces and tonnage</div>
+    <h2 class="st">You sell tonnes. You move pieces. The gap between them is margin.</h2>
+    <div class="fig">
+      <div class="fb">
+        <svg viewBox="0 0 900 230" role="img" aria-label="One load of forty beams: calculated weight 24.60 MT against weighbridge weight 24.06 MT, a gap of 0.54 MT or about AED 1350.">
+          <g font-family="IBM Plex Sans, sans-serif">
+            <text x="0" y="12" font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="1.5" fill="#6E7B85">ONE LOAD, 40 PCS, UB 305 x 165, GRADE S275JR</text>
+            <text x="0" y="44" font-size="13.5" fill="#44505A">Calculated from pieces</text>
+            <rect x="0" y="54" width="700" height="30" rx="2" fill="#4A5A66"></rect>
+            <text x="714" y="75" font-family="IBM Plex Mono, monospace" font-size="15" fill="#0F1418">24.60 MT</text>
+            <text x="0" y="116" font-size="13.5" fill="#44505A">Weighbridge</text>
+            <rect x="0" y="126" width="684" height="30" rx="2" fill="#F2A31C"></rect>
+            <text x="714" y="147" font-family="IBM Plex Mono, monospace" font-size="15" fill="#B87400">24.06 MT</text>
+            <line x1="684" y1="122" x2="684" y2="176" stroke="#C1272D" stroke-dasharray="3 3"></line>
+            <line x1="700" y1="50" x2="700" y2="176" stroke="#C1272D" stroke-dasharray="3 3"></line>
+            <text x="540" y="192" font-family="IBM Plex Mono, monospace" font-size="12" fill="#C1272D">gap 0.54 MT, 2.2% of the load</text>
+            <rect x="0" y="198" width="520" height="30" rx="2" fill="#FBEAEA"></rect>
+            <text x="14" y="218" font-size="13" fill="#C1272D" font-weight="600">About AED 1,350 unbilled on this one load.</text>
+          </g>
+        </svg>
+      </div>
+      <div class="fc">Figures shown for illustration at AED 2,500 per MT. Insight holds pieces and tonnes on the same stock line, records the weighbridge figure against the calculated one, and reports the difference.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 OFFCUTS -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Offcuts</div>
+    <h2 class="st">The offcut is still your steel. The system usually stops tracking it.</h2>
+    <div class="fig">
+      <div class="fb">
+        <svg viewBox="0 0 900 216" role="img" aria-label="A 12 metre plate cut into three issued pieces leaves a 2.4 metre offcut which is not tracked.">
+          <g font-family="IBM Plex Sans, sans-serif">
+            <text x="0" y="12" font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="1.5" fill="#6E7B85">PLATE 12000 x 1500 x 10, HEAT 5120-A</text>
+            <rect x="0" y="30" width="900" height="46" rx="2" fill="#EEF1F3" stroke="#C2CBD1"></rect>
+            <rect x="0" y="30" width="286" height="46" rx="2" fill="#0A6B59"></rect>
+            <rect x="290" y="30" width="222" height="46" fill="#0A6B59"></rect>
+            <rect x="516" y="30" width="204" height="46" fill="#0A6B59"></rect>
+            <rect x="724" y="30" width="176" height="46" rx="2" fill="#F2A31C"></rect>
+            <g font-family="IBM Plex Mono, monospace" font-size="11" fill="#FFFFFF">
+              <text x="14" y="58">CUT 1</text><text x="304" y="58">CUT 2</text><text x="530" y="58">CUT 3</text>
+            </g>
+            <text x="738" y="58" font-family="IBM Plex Mono, monospace" font-size="11" fill="#0F1418" font-weight="600">OFFCUT 2.4 m</text>
+            <text x="0" y="94" font-family="IBM Plex Mono, monospace" font-size="11" fill="#0A6B59">Issued to the job, costed and invoiced</text>
+            <text x="724" y="94" font-family="IBM Plex Mono, monospace" font-size="11" fill="#B87400">Still yours</text>
+            <line x1="0" y1="112" x2="900" y2="112" stroke="#DCE2E6"></line>
+            <text x="0" y="138" font-size="13.5" fill="#44505A">Without a record, the offcut goes one of three ways:</text>
+            <g font-size="13.5" fill="#0F1418">
+              <text x="14" y="162">1. Stacked behind the shed and forgotten</text>
+              <text x="330" y="162">2. Sold as scrap below book value</text>
+              <text x="620" y="162">3. On the books but never trusted</text>
+            </g>
+            <rect x="0" y="186" width="640" height="30" rx="2" fill="#FBEAEA"></rect>
+            <text x="14" y="206" font-size="13" fill="#C1272D" font-weight="600">Meanwhile the same section is reordered at today's price.</text>
+          </g>
+        </svg>
+      </div>
+      <div class="fc">Insight records a cut as a transaction. The parent piece is consumed, the offcut is created as its own stock item with the heat number and certificate carried across, given a location and an age, and shown to sales before a fresh section is ordered.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 WHAT GOES WRONG -->
+<section class="slide bnd">
+  <div class="inner">
+    <div class="tag">Choosing a partner</div>
+    <h2 class="st">Most WMS projects do not fail on software.</h2>
+    <p class="say">They fail on who implements it. These are the four gaps we see most often, and what we put in the contract instead.</p>
+    <div class="cmp">
+      <div class="hd"><div>The usual gap</div><div>What we commit to</div></div>
+      <div class="rw">
+        <div><b>The team that sells is not the team that implements</b>Junior consultants learn steel operations on your project, at your cost.</div>
+        <div><b>Named consultants, written into the contract</b>You meet the functional and technical consultants before you sign, and they stay on the project.</div>
+      </div>
+      <div class="rw">
+        <div><b>The vendor or the product does not last</b>Support fades after go live and the product stops being developed.</div>
+        <div><b>Our own product, backed by the Group</b>Insight is built and owned by us, inside a group trading since 1977 with 550+ projects delivered.</div>
+      </div>
+      <div class="rw">
+        <div><b>Nobody on site</b>Configuration and training handled remotely by email and support tickets.</div>
+        <div><b>Consultants in your yard</b>Functional and technical resources on site through build, pilot and go live. Our office is in Dubai.</div>
+      </div>
+      <div class="rw">
+        <div><b>Training stops at handover</b>The yard reverts to spreadsheets within a month and the system is blamed.</div>
+        <div><b>Training on the floor, then again after 30 days</b>Operator level training in the language they work in, with our own service desk on an SLA afterwards.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 HOW IT WORKS -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">How it works</div>
+    <h2 class="st">Insight sits over the yard and talks to your ERP.</h2>
+    <p class="say">It does not replace your accounting system. It gives the yard a system of record and keeps both sides holding the same stock figure.</p>
+    <div class="fig">
+      <div class="fb">
+        <svg viewBox="0 0 900 230" role="img" aria-label="Scanners in the yard feed Insight WMS, which exchanges purchase orders, shipment notices, sales orders, receipts and shipments with the ERP, and feeds reporting tools.">
+          <g font-family="IBM Plex Sans, sans-serif">
+            <rect x="0" y="40" width="220" height="120" rx="3" fill="#F4F6F8" stroke="#C2CBD1"></rect>
+            <text x="18" y="30" font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="1.4" fill="#6E7B85">THE YARD</text>
+            <text x="18" y="70" font-size="14" fill="#0F1418" font-weight="600">Scanners and terminals</text>
+            <g font-size="13" fill="#44505A">
+              <text x="18" y="95">Receiving and put away</text>
+              <text x="18" y="117">Picking and despatch</text>
+              <text x="18" y="139">Cutting, transfer, counting</text>
+            </g>
+
+            <rect x="290" y="20" width="290" height="160" rx="3" fill="#12171C"></rect>
+            <text x="310" y="52" font-family="Archivo, sans-serif" font-size="19" font-weight="700" fill="#FFFFFF">Insight WMS</text>
+            <text x="310" y="72" font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="1.3" fill="#F2A31C">OPEN YARD AND WAREHOUSE</text>
+            <g font-size="12.5" fill="#98A5AE">
+              <text x="310" y="100">Heat number and certificate</text>
+              <text x="310" y="121">Pieces and tonnage</text>
+              <text x="310" y="142">Location, reservation, aging</text>
+              <text x="310" y="163">Cycle counting</text>
+            </g>
+
+            <rect x="650" y="20" width="250" height="74" rx="3" fill="#F4F6F8" stroke="#C2CBD1"></rect>
+            <text x="668" y="46" font-size="14" fill="#0F1418" font-weight="600">Your ERP</text>
+            <text x="668" y="70" font-size="12.5" fill="#44505A">Finance, purchase, sales</text>
+            <rect x="650" y="108" width="250" height="72" rx="3" fill="#F4F6F8" stroke="#C2CBD1"></rect>
+            <text x="668" y="134" font-size="14" fill="#0F1418" font-weight="600">Reporting</text>
+            <text x="668" y="158" font-size="12.5" fill="#44505A">Power BI or your own tool</text>
+
+            <g stroke="#C2CBD1" stroke-width="1.5" fill="none">
+              <path d="M222 100 L288 100"></path>
+              <path d="M582 57 L648 57"></path>
+              <path d="M582 144 L648 144"></path>
+            </g>
+            <g fill="#C2CBD1">
+              <path d="M282 95 l10 5 -10 5 z"></path><path d="M642 52 l10 5 -10 5 z"></path><path d="M642 139 l10 5 -10 5 z"></path>
+            </g>
+            <text x="586" y="44" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6E7B85">orders in</text>
+            <text x="516" y="200" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6E7B85">receipts and shipments out</text>
+          </g>
+        </svg>
+      </div>
+      <div class="fc">Insight has been integrated with SAP, Microsoft Dynamics AX, NAV and Business Central, Oracle E-Business Suite, Orion and Scala, using EDI, XML or file based interfaces.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 MECHANISM -->
+<section class="slide bnd">
+  <div class="inner">
+    <div class="tag">What the system does</div>
+    <h2 class="st">The same eight points, handled.</h2>
+    <div class="mech">
+      <div class="m"><div class="n">01</div><div><b>Certificate on the steel</b><span>Heat number and certificate attach at receipt and stay with the piece through cutting, transfer and despatch.</span></div></div>
+      <div class="m"><div class="n">02</div><div><b>Pieces and tonnes together</b><span>Both units on one stock line, with the weighbridge figure recorded against the calculated one.</span></div></div>
+      <div class="m"><div class="n">03</div><div><b>Offcuts become stock</b><span>A cut creates the offcut as its own item, carrying the heat number, with a location and an age.</span></div></div>
+      <div class="m"><div class="n">04</div><div><b>Row, bay and stack</b><span>The yard is mapped without racking. The scanner directs put away and picking instead of memory.</span></div></div>
+      <div class="m"><div class="n">05</div><div><b>Aging by grade</b><span>Tonnage aged by grade, section and heat against what it cost, so slow movers surface early.</span></div></div>
+      <div class="m"><div class="n">06</div><div><b>Live stock for sales</b><span>Quotes run against on hand less allocated less reserved, at the moment of quoting.</span></div></div>
+      <div class="m"><div class="n">07</div><div><b>Reservation with an owner</b><span>Project stock is blocked in the system with a reference and an expiry date. General stock stays open.</span></div></div>
+      <div class="m"><div class="n">08</div><div><b>Counting by zone</b><span>Rolling counts by zone, grade or age, with weight tolerance for heavy sections. The yard keeps trading.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 CAPTURE -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Capture in the yard</div>
+    <h2 class="st">Barcode first. RFID only where it pays for itself.</h2>
+    <p class="say">RFID gets quoted often for steel. It works in a carton warehouse. In an open stockyard it needs care, so here is the honest position.</p>
+    <div class="g3">
+      <div class="card">
+        <div class="ct">What we recommend</div>
+        <div class="cb">Weatherproof barcode tags at bundle and piece level, with the heat number and certificate behind the scan. Low cost per tag, reprintable, and it survives sun, humidity and handling.</div>
+      </div>
+      <div class="card">
+        <div class="ct">Why RFID struggles on steel</div>
+        <div class="cb">Steel reflects radio signals, so ordinary tags do not read at all. On metal tags work but cost several dirhams each, and they do not survive slings, magnets and cutting. Cut a tagged bar and both halves lose their identity.</div>
+      </div>
+      <div class="card">
+        <div class="ct">Where RFID does earn its place</div>
+        <div class="cb">Gate in and gate out, trailers, and reusable racks and stillages, where the tag is fixed once and used for years. We would scope this after the barcode base is running, not before.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 ROLLOUT -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Rollout</div>
+    <h2 class="st">One zone first. The yard keeps trading throughout.</h2>
+    <div class="road">
+      <div class="ph"><div class="wk">Weeks 1 to 2</div><b>Discover</b><p>Yard walkthrough, certificate retrieval test, current process, and the starting figures for every measure on the next slide.</p><div class="o">Baseline report</div></div>
+      <div class="ph"><div class="wk">Weeks 3 to 5</div><b>Define</b><p>Target process, item and unit standard, yard location model, and the interface agreed with your ERP.</p><div class="o">Signed scope</div></div>
+      <div class="ph"><div class="wk">Weeks 6 to 11</div><b>Build</b><p>Configuration, data preparation, interface build, coverage survey and hardware for the yard.</p><div class="o">Tested system</div></div>
+      <div class="ph"><div class="wk">Weeks 12 to 15</div><b>Pilot</b><p>One zone and one product class live, running alongside the current method, with training on the floor.</p><div class="o">Go or no go</div></div>
+      <div class="ph"><div class="wk">Week 16 onward</div><b>Roll out</b><p>Zone by zone, then support on an SLA. Results reviewed at 30, 60 and 90 days.</p><div class="o">Benefits reviewed</div></div>
+    </div>
+    <p class="fine">Indicative for a single site. Confirmed against your item count, yard layout and ERP after the first two weeks.</p>
+  </div>
+</section>
+
+<!-- 14 RESULTS -->
+<section class="slide bnd">
+  <div class="inner">
+    <div class="tag">What changes</div>
+    <h2 class="st">Six numbers we will measure before and after.</h2>
+    <div class="res">
+      <div class="rr h"><div>Measure</div><div>Typical today</div><div>Target</div></div>
+      <div class="rr"><div class="m">Mill certificate retrieval</div><div class="b">4 hours to 2 days</div><div class="a">under a minute</div></div>
+      <div class="rr"><div class="m">Stock accuracy by piece</div><div class="b">85 to 92%</div><div class="a">98% and above</div></div>
+      <div class="rr"><div class="m">Weight difference on despatch</div><div class="b">not measured</div><div class="a">tracked within 2%</div></div>
+      <div class="rr"><div class="m">Offcuts back in sellable stock</div><div class="b">not tracked</div><div class="a">fully recorded</div></div>
+      <div class="rr"><div class="m">Yard days lost to counting</div><div class="b">2 to 5 per year</div><div class="a">none</div></div>
+      <div class="rr"><div class="m">Project stock blocked in the system</div><div class="b">verbal</div><div class="a">reserved with an expiry</div></div>
+    </div>
+    <p class="fine">Starting figures are measured in the first two weeks. Targets are committed once we have them.</p>
+  </div>
+</section>
+
+<!-- 15 CLOSE -->
+<section class="slide dk close">
+  <div class="inner">
+    <div class="tag">Next step</div>
+    <h2 class="st" style="max-width:20ch">Ninety minutes in the yard, at no cost.</h2>
+    <p class="say">We time a certificate retrieval, count one zone, and compare the system figure against the physical stack. You get the written baseline either way.</p>
+    <div class="cg">
+      <div><div class="l">Contact</div><div class="v">Hans Hameed<br>AVP, Business Applications</div></div>
+      <div><div class="l">Direct</div><div class="v"><a href="tel:+971543070261">+971 54 307 0261</a><br><a href="mailto:HansH@gerabsys.com">HansH@gerabsys.com</a></div></div>
+      <div><div class="l">Office</div><div class="v">Al Fattan Plaza, Al Garhoud<br>Airport Road, Dubai</div></div>
+      <div><div class="l">Web</div><div class="v"><a href="https://www.gerabsys.com">www.gerabsys.com</a></div></div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<div class="pager">
+  <span class="cnt" id="cnt">1 / 15</span>
+  <button id="prev" aria-label="Previous slide">&#8593;</button>
+  <button id="next" aria-label="Next slide">&#8595;</button>
+</div>
+
+<script>
+(function(){
+  var deck = document.getElementById('deck');
+  var slides = Array.prototype.slice.call(deck.querySelectorAll('.slide'));
+  var cnt = document.getElementById('cnt');
+  var rail = document.getElementById('rail');
+  var i = 0;
+
+  function paint(){
+    cnt.textContent = (i + 1) + ' / ' + slides.length;
+    rail.style.width = ((i + 1) / slides.length * 100) + '%';
+  }
+  function go(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides[i].scrollIntoView({behavior: 'smooth', block: 'start'});
+    paint();
+  }
+  document.getElementById('next').addEventListener('click', function(){ go(i + 1); });
+  document.getElementById('prev').addEventListener('click', function(){ go(i - 1); });
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'ArrowDown' || k === 'PageDown' || k === ' ') { e.preventDefault(); go(i + 1); }
+    else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp') { e.preventDefault(); go(i - 1); }
+    else if (k === 'Home') { e.preventDefault(); go(0); }
+    else if (k === 'End') { e.preventDefault(); go(slides.length - 1); }
+  });
+
+  var tick;
+  deck.addEventListener('scroll', function(){
+    clearTimeout(tick);
+    tick = setTimeout(function(){
+      var mid = deck.scrollTop + deck.clientHeight / 2, best = 0;
+      for (var s = 0; s < slides.length; s++){
+        if (slides[s].offsetTop <= mid) best = s;
+      }
+      if (best !== i){ i = best; paint(); }
+    }, 90);
+  }, {passive: true});
+
+  paint();
+})();
+</script>
