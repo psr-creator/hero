@@ -1,0 +1,779 @@
+<title>Al Nimr Steel Yard WMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F4F6F7; --surface:#FFFFFF; --surface-2:#EDF0F2; --panel:#1B2228;
+  --ink:#12171B; --ink-2:#3D474F; --muted:#65727C; --rule:#D9DFE3; --rule-2:#C3CBD1;
+  --red:#C1272D; --red-soft:#F6E4E4; --amber:#C57A00; --amber-soft:#FBEFD9;
+  --teal:#0B6E5C; --teal-soft:#DFF0EB; --steel:#4A5A66;
+  --on-panel:#E8ECEF; --on-panel-muted:#96A3AC;
+  --shadow:0 1px 2px rgba(18,23,27,.06),0 8px 24px -14px rgba(18,23,27,.22);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0E1215; --surface:#161B20; --surface-2:#1D242A; --panel:#080B0D;
+    --ink:#E9EDEF; --ink-2:#BFC8CE; --muted:#8D99A2; --rule:#242C33; --rule-2:#333E46;
+    --red:#F0575D; --red-soft:#2A1618; --amber:#F0A828; --amber-soft:#2A2013;
+    --teal:#4CC3A6; --teal-soft:#0F2622; --steel:#8B9BA7;
+    --on-panel:#E8ECEF; --on-panel-muted:#8D99A2;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0E1215; --surface:#161B20; --surface-2:#1D242A; --panel:#080B0D;
+  --ink:#E9EDEF; --ink-2:#BFC8CE; --muted:#8D99A2; --rule:#242C33; --rule-2:#333E46;
+  --red:#F0575D; --red-soft:#2A1618; --amber:#F0A828; --amber-soft:#2A2013;
+  --teal:#4CC3A6; --teal-soft:#0F2622; --steel:#8B9BA7;
+  --on-panel:#E8ECEF; --on-panel-muted:#8D99A2;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:Archivo,"Helvetica Neue",Arial,sans-serif; margin:0; text-wrap:balance; letter-spacing:-.02em; line-height:1.08}
+p{margin:0}
+a{color:inherit}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- shell ---------- */
+.wrap{max-width:1160px; margin:0 auto; padding:0 28px}
+.topbar{
+  position:sticky; top:0; z-index:50; background:color-mix(in srgb,var(--ground) 92%,transparent);
+  backdrop-filter:saturate(1.4) blur(10px); border-bottom:1px solid var(--rule);
+}
+.topbar .wrap{display:flex; align-items:center; gap:18px; height:58px}
+.brandline{display:flex; align-items:center; gap:11px; min-width:0}
+.brandline img{height:26px; width:auto; display:block}
+.brandline .gname{font-family:Archivo; font-weight:700; font-size:13.5px; letter-spacing:.01em; line-height:1.15}
+.brandline .gsub{font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted); font-family:"IBM Plex Mono"}
+.xmark{color:var(--rule-2); font-size:15px}
+nav.sec{margin-left:auto; display:flex; gap:2px; flex-wrap:wrap}
+nav.sec a{
+  font-family:"IBM Plex Mono"; font-size:11px; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--muted); text-decoration:none; padding:6px 10px; border-radius:3px; white-space:nowrap;
+}
+nav.sec a:hover{color:var(--ink); background:var(--surface-2)}
+nav.sec a:focus-visible{outline:2px solid var(--red); outline-offset:1px}
+@media(max-width:820px){ nav.sec{display:none} }
+
+section{padding:66px 0 10px; scroll-margin-top:64px}
+.eyebrow{
+  display:flex; align-items:center; gap:12px; margin-bottom:22px;
+  font-family:"IBM Plex Mono"; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted);
+}
+.eyebrow .idx{color:var(--red); font-weight:600}
+.eyebrow .bar{flex:1; height:1px; background:var(--rule)}
+h2.sh{font-size:clamp(28px,4.3vw,42px); font-weight:700; margin-bottom:14px}
+.lede{font-size:17.5px; color:var(--ink-2); max-width:64ch; line-height:1.62}
+h3.blk{font-size:13px; font-family:"IBM Plex Mono"; font-weight:600; letter-spacing:.13em; text-transform:uppercase; color:var(--ink); margin:52px 0 16px}
+.hr{height:1px; background:var(--rule); border:0; margin:0}
+
+/* ---------- cover ---------- */
+.cover{padding-top:52px}
+.cover .kicker{
+  font-family:"IBM Plex Mono"; font-size:11.5px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--muted); display:flex; gap:14px; flex-wrap:wrap; align-items:center;
+}
+.cover .kicker b{color:var(--red); font-weight:600}
+h1{font-size:clamp(38px,6.6vw,68px); font-weight:800; margin:20px 0 0; letter-spacing:-.035em}
+h1 em{font-style:normal; color:var(--red)}
+.cover .sub{margin-top:22px; font-size:19px; line-height:1.55; color:var(--ink-2); max-width:60ch}
+.stamp{
+  margin-top:38px; display:grid; grid-template-columns:1fr auto 1fr; gap:0; align-items:stretch;
+  border:1px solid var(--rule); background:var(--surface); border-radius:4px; overflow:hidden;
+}
+.stamp .side{padding:20px 24px; display:flex; flex-direction:column; gap:12px; justify-content:center}
+.stamp .side .role{font-family:"IBM Plex Mono"; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted)}
+.stamp .div{width:1px; background:var(--rule)}
+.stamp .lock{display:flex; align-items:center; gap:12px}
+.stamp .lock img{height:44px; width:auto}
+.stamp .lock .t{font-family:Archivo; font-weight:700; font-size:16px; line-height:1.15}
+.stamp .ar{font-size:13.5px; color:var(--muted); margin-top:-4px; letter-spacing:0; text-align:left; padding-left:52px}
+.stamp .lock .t span{display:block; font-family:"IBM Plex Mono"; font-weight:400; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-top:3px}
+@media(max-width:700px){ .stamp{grid-template-columns:1fr} .stamp .div{width:auto;height:1px} }
+.chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:22px}
+.chip{
+  font-family:"IBM Plex Mono"; font-size:11px; letter-spacing:.06em; padding:5px 11px;
+  border:1px solid var(--rule-2); border-radius:100px; color:var(--ink-2);
+}
+
+/* ---------- stats ---------- */
+.stats{display:grid; grid-template-columns:repeat(6,1fr); gap:1px; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--rule)}
+.stats div{padding:20px 18px; background:var(--surface)}
+@media(max-width:900px){ .stats{grid-template-columns:repeat(3,1fr)} }
+@media(max-width:520px){ .stats{grid-template-columns:repeat(2,1fr)} }
+.stats .v{font-family:Archivo; font-weight:700; font-size:27px; letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.stats .k{font-family:"IBM Plex Mono"; font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); margin-top:5px; line-height:1.4}
+
+/* ---------- generic grid ---------- */
+.g2{display:grid; grid-template-columns:1fr 1fr; gap:20px}
+.g3{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+@media(max-width:880px){ .g2,.g3{grid-template-columns:1fr} }
+
+.note{
+  border-left:2px solid var(--rule-2); padding:2px 0 2px 16px; color:var(--muted); font-size:14px; line-height:1.6;
+}
+
+/* ---------- reference wall ---------- */
+.refwall{
+  background:#fff; border:1px solid var(--rule); border-radius:4px; padding:26px 22px;
+  display:grid; grid-template-columns:repeat(8,1fr); gap:26px 16px; align-items:center; justify-items:center;
+}
+@media(max-width:900px){ .refwall{grid-template-columns:repeat(4,1fr)} }
+@media(max-width:520px){ .refwall{grid-template-columns:repeat(2,1fr)} }
+.refwall img.ref{max-height:36px; width:auto; max-width:100%; filter:grayscale(1); opacity:.72; transition:filter .2s,opacity .2s}
+.refwall img.ref:hover{filter:none; opacity:1}
+.refcap{font-family:"IBM Plex Mono"; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-top:10px}
+
+/* ---------- quote ---------- */
+.quote{
+  background:var(--panel); color:var(--on-panel); border-radius:5px; padding:40px 42px; margin-top:8px;
+  position:relative; overflow:hidden;
+}
+.quote .qlabel{font-family:"IBM Plex Mono"; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--on-panel-muted)}
+.quote blockquote{margin:16px 0 0; font-family:Archivo; font-weight:600; font-size:clamp(21px,3.1vw,31px); line-height:1.26; letter-spacing:-.02em; max-width:30ch}
+.quote .qfoot{margin-top:20px; font-size:14.5px; color:var(--on-panel-muted); max-width:56ch; line-height:1.6}
+.quote .stripes{position:absolute; right:-40px; top:0; bottom:0; width:170px; opacity:.11}
+@media(max-width:700px){ .quote{padding:30px 24px} .quote .stripes{display:none} }
+
+/* ---------- figure ---------- */
+.tile{background:var(--surface); border:1px solid var(--rule); border-radius:4px; padding:20px 22px}
+.tile .figtitle{font-family:Archivo; font-weight:700; font-size:16px; letter-spacing:-.01em}
+.tile .figsub{font-size:13.5px; color:var(--muted); margin-top:6px; line-height:1.58}
+figure{margin:0; background:var(--surface); border:1px solid var(--rule); border-radius:4px; padding:22px 24px 18px; box-shadow:var(--shadow)}
+figure .figtitle{font-family:Archivo; font-weight:700; font-size:16px; letter-spacing:-.01em}
+figure .figsub{font-size:13.5px; color:var(--muted); margin-top:5px; line-height:1.55}
+figure .figbody{margin-top:20px; overflow-x:auto}
+figure svg{display:block; min-width:520px; width:100%; height:auto}
+figcaption{margin-top:14px; padding-top:12px; border-top:1px solid var(--rule); font-family:"IBM Plex Mono"; font-size:11.5px; color:var(--muted); line-height:1.6}
+
+/* ---------- pain cards ---------- */
+.pains{display:grid; grid-template-columns:repeat(4,1fr); gap:14px}
+@media(max-width:1080px){ .pains{grid-template-columns:repeat(2,1fr)} }
+@media(max-width:620px){ .pains{grid-template-columns:1fr} }
+.pain{
+  background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--sev,var(--amber));
+  border-radius:3px; padding:17px 18px 16px; display:flex; flex-direction:column; gap:9px;
+}
+.pain .ptop{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+.pain h4{font-size:15.5px; font-weight:700; letter-spacing:-.01em}
+.pain .sev{font-family:"IBM Plex Mono"; font-size:9.5px; letter-spacing:.11em; text-transform:uppercase; color:var(--sev,var(--amber)); white-space:nowrap; font-weight:500}
+.pain p{font-size:14px; color:var(--ink-2); line-height:1.55}
+.pain .cost{
+  margin-top:auto; padding-top:10px; border-top:1px dashed var(--rule);
+  font-family:"IBM Plex Mono"; font-size:11.5px; color:var(--muted); line-height:1.5;
+}
+.pain .cost b{color:var(--ink); font-weight:500}
+
+/* ---------- failure table ---------- */
+.tblwrap{overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:660px; font-size:14.2px}
+th{
+  text-align:left; font-family:"IBM Plex Mono"; font-size:10.5px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--muted); font-weight:500; padding:13px 18px; border-bottom:1px solid var(--rule-2); vertical-align:bottom;
+}
+td{padding:15px 18px; border-bottom:1px solid var(--rule); vertical-align:top; color:var(--ink-2); line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td.lead{color:var(--ink); font-weight:500; width:26%}
+td.lead .tag{display:block; font-family:"IBM Plex Mono"; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--red); margin-bottom:4px; font-weight:500}
+td.ok .tag{color:var(--teal)}
+.tblwrap.dense td{padding:13px 18px}
+td .mt{font-family:"IBM Plex Mono"; font-size:13px}
+
+/* ---------- how: capability rows ---------- */
+.caps{border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--surface)}
+.cap{display:grid; grid-template-columns:34px 1fr 1.25fr; gap:0; border-bottom:1px solid var(--rule)}
+.cap:last-child{border-bottom:0}
+.cap .n{
+  display:flex; align-items:flex-start; justify-content:center; padding:16px 0 0;
+  font-family:"IBM Plex Mono"; font-size:11px; color:var(--muted); background:var(--surface-2); border-right:1px solid var(--rule);
+}
+.cap .l{padding:15px 18px; border-right:1px solid var(--rule)}
+.cap .l b{display:block; font-family:Archivo; font-weight:700; font-size:14.5px; letter-spacing:-.005em}
+.cap .l span{display:block; font-size:12.8px; color:var(--muted); margin-top:4px; line-height:1.5}
+.cap .r{padding:15px 18px; font-size:14px; color:var(--ink-2); line-height:1.6}
+.cap .r code{
+  font-family:"IBM Plex Mono"; font-size:12.2px; background:var(--surface-2);
+  border:1px solid var(--rule); border-radius:3px; padding:1px 5px; color:var(--ink); white-space:nowrap;
+}
+@media(max-width:820px){ .cap{grid-template-columns:28px 1fr} .cap .l{border-right:0; padding-bottom:0} .cap .r{grid-column:2; padding-top:9px} }
+
+/* ---------- roadmap ---------- */
+.road{display:grid; grid-template-columns:repeat(5,1fr); gap:0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--surface)}
+.road .ph{padding:18px 16px 20px; border-right:1px solid var(--rule); display:flex; flex-direction:column; gap:8px}
+.road .ph:last-child{border-right:0}
+.road .wk{font-family:"IBM Plex Mono"; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--red)}
+.road .ph b{font-family:Archivo; font-size:15px; font-weight:700}
+.road .ph p{font-size:12.8px; color:var(--muted); line-height:1.5}
+.road .ph .out{margin-top:auto; padding-top:10px; font-family:"IBM Plex Mono"; font-size:10.5px; color:var(--ink-2); line-height:1.5; border-top:1px dashed var(--rule)}
+@media(max-width:980px){ .road{grid-template-columns:1fr 1fr} .road .ph{border-bottom:1px solid var(--rule)} }
+@media(max-width:560px){ .road{grid-template-columns:1fr} .road .ph{border-right:0} }
+
+/* ---------- results ---------- */
+.res{border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--surface)}
+.resrow{display:grid; grid-template-columns:1.5fr 1fr 1fr 1.7fr; align-items:center; gap:0; border-bottom:1px solid var(--rule)}
+.resrow:last-child{border-bottom:0}
+.resrow.head{background:var(--surface-2)}
+.resrow.head>div{
+  font-family:"IBM Plex Mono"; font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted); padding:12px 16px;
+}
+.resrow>div{padding:14px 16px}
+.resrow .metric{font-weight:500; color:var(--ink); font-size:14.2px; line-height:1.4}
+.resrow .metric span{display:block; font-size:12px; color:var(--muted); font-weight:400; margin-top:3px; font-family:"IBM Plex Mono"}
+.resrow .before{font-family:"IBM Plex Mono"; font-size:13.5px; color:var(--muted); font-variant-numeric:tabular-nums}
+.resrow .after{font-family:"IBM Plex Mono"; font-size:14.5px; color:var(--teal); font-weight:600; font-variant-numeric:tabular-nums}
+.resrow .why{font-size:13px; color:var(--ink-2); line-height:1.5}
+@media(max-width:880px){
+  .resrow{grid-template-columns:1fr 1fr; row-gap:0}
+  .resrow.head{display:none}
+  .resrow .metric{grid-column:1/-1; padding-bottom:4px}
+  .resrow .before::before{content:"now  "; color:var(--rule-2)}
+  .resrow .after::before{content:"target  "; color:var(--rule-2); font-weight:400}
+  .resrow .why{grid-column:1/-1; padding-top:4px}
+}
+
+/* ---------- close ---------- */
+.close{background:var(--panel); color:var(--on-panel); border-radius:5px; padding:38px 40px; margin-top:26px}
+.close h3{font-family:Archivo; font-size:clamp(22px,3.2vw,30px); font-weight:700; letter-spacing:-.02em; max-width:24ch}
+.close p{margin-top:14px; color:var(--on-panel-muted); font-size:15px; max-width:58ch; line-height:1.6}
+.close .cgrid{margin-top:28px; display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:22px; padding-top:24px; border-top:1px solid rgba(255,255,255,.13)}
+.close .cgrid .lab{font-family:"IBM Plex Mono"; font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--on-panel-muted); margin-bottom:7px}
+.close .cgrid .val{font-size:14.5px; line-height:1.6}
+.close .cgrid .val a{color:var(--on-panel); text-decoration:none; border-bottom:1px solid rgba(255,255,255,.3)}
+@media(max-width:700px){ .close{padding:28px 24px} }
+
+footer{padding:34px 0 56px; margin-top:44px; border-top:1px solid var(--rule)}
+footer .fin{display:flex; gap:20px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+  font-family:"IBM Plex Mono"; font-size:11px; letter-spacing:.06em; color:var(--muted); line-height:1.7}
+
+@media(prefers-reduced-motion:reduce){ *{animation:none!important; transition:none!important; scroll-behavior:auto!important} }
+html{scroll-behavior:smooth}
+</style>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="brandline">
+      <img src="{{GERAB}}" alt="Gerab">
+      <div>
+        <div class="gname">GERAB SYSTEM SOLUTIONS</div>
+        <div class="gsub">Business Applications</div>
+      </div>
+    </div>
+    <div class="xmark">&times;</div>
+    <div class="brandline">{{ALNIMR_SM}}</div>
+    <nav class="sec">
+      <a href="#who">01 Who we are</a>
+      <a href="#why">02 Why WMS</a>
+      <a href="#how">03 How</a>
+      <a href="#results">04 Results</a>
+    </nav>
+  </div>
+</div>
+
+<!-- ============ COVER ============ -->
+<section class="cover">
+  <div class="wrap">
+    <div class="kicker"><b>Solution Brief</b> <span>&middot;</span> <span>Open Yard &amp; Warehouse Management</span> <span>&middot;</span> <span>Dubai &middot; 2026</span></div>
+    <h1>A steel yard that<br>answers <em>in seconds</em>,<br>not in hours.</h1>
+    <p class="sub">Beams, plates, coils and pipe don't scan like cartons. Heat numbers, mill certs, dual UOM and offcuts are where the margin quietly leaves the yard. This is how we put every piece under one system of record.</p>
+
+    <div class="stamp">
+      <div class="side">
+        <div class="role">Prepared by</div>
+        <div class="lock">
+          <img src="{{GERAB}}" alt="Gerab System Solutions">
+          <div class="t">Gerab System Solutions LLC<span>&ldquo;Your business, our commitment&rdquo;</span></div>
+        </div>
+      </div>
+      <div class="div"></div>
+      <div class="side">
+        <div class="role">Prepared for</div>
+        <div class="lock">{{ALNIMR_LG}}</div>
+        <div class="ar" lang="ar">النمر لتجارة الحديد ذ.م.م</div>
+      </div>
+    </div>
+
+    <div class="chips">
+      <span class="chip">Insight SCM Suite</span>
+      <span class="chip">Heat no. &amp; MTC traceability</span>
+      <span class="chip">Dual UOM &mdash; PCS &amp; MT</span>
+      <span class="chip">Open-yard locations</span>
+      <span class="chip">ERP-integrated</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 01 WHO ============ -->
+<section id="who">
+  <div class="wrap">
+    <div class="eyebrow"><span class="idx">01</span><span>Who we are</span><span class="bar"></span></div>
+    <h2 class="sh">A technology arm that grew up inside a steel and logistics group.</h2>
+    <p class="lede">Gerab System Solutions is the IT vertical of the Gerab Group, under Sharafi Holding &mdash; trading since 1977. The Group's own businesses include pipe, fitting and flange stockholding and open-yard logistics. We are not learning stockyard operations from a requirements document.</p>
+
+    <h3 class="blk">The group behind the desk</h3>
+    <div class="stats">
+      <div><div class="v">1977</div><div class="k">Trading since</div></div>
+      <div><div class="v">850+</div><div class="k">Resource base</div></div>
+      <div><div class="v">AED&nbsp;1Bn+</div><div class="k">Group revenue</div></div>
+      <div><div class="v">10+</div><div class="k">Global locations</div></div>
+      <div><div class="v">550+</div><div class="k">Projects delivered</div></div>
+      <div><div class="v">95%+</div><div class="k">Customer retention</div></div>
+    </div>
+    <p class="note" style="margin-top:14px">Group companies: Gerab National Enterprises &middot; Flexigistic &middot; Gerab Energy Systems &middot; Samamat Flow Control &middot; Artelliq &middot; Gerab Systems Technology &middot; S Hotels &middot; Al Arsh Properties. Presence across UAE, KSA, Kuwait, Qatar, Oman, Iraq, India, China, South Korea and the USA.</p>
+
+    <h3 class="blk">Where this project sits</h3>
+    <div class="g3">
+      <div class="tile">
+        <div class="figtitle">Business Applications</div>
+        <div class="figsub">Dynamics 365 / Business Central, Navision, AX, Oracle E-Business Suite, SharePoint, Power BI &mdash; and <b>Insight</b>, our own warehouse and open-yard platform.</div>
+      </div>
+      <div class="tile">
+        <div class="figtitle">Infrastructure &amp; Security</div>
+        <div class="figsub">Compute, storage, network, wireless, endpoint and database security. Relevant here because yard RF coverage is an infrastructure problem, not a software one.</div>
+      </div>
+      <div class="tile">
+        <div class="figtitle">Managed Services</div>
+        <div class="figsub">24&times;7 service desk, on-site engineers, SLA-backed support. The team that runs the system after go-live is the team that built it.</div>
+      </div>
+    </div>
+
+    <h3 class="blk">Selected references</h3>
+    <div class="refwall">
+{{REFS}}
+    </div>
+    <div class="refcap">A selection from 550+ delivered projects &mdash; construction, precast, heavy fabrication, chemicals, manufacturing, trading and aviation.</div>
+  </div>
+</section>
+
+<!-- ============ 02 WHY ============ -->
+<section id="why">
+  <div class="wrap">
+    <div class="eyebrow"><span class="idx">02</span><span>Why WMS</span><span class="bar"></span></div>
+    <h2 class="sh">Start with one question. It exposes the whole chain.</h2>
+
+    <div class="quote">
+      <svg class="stripes" viewBox="0 0 200 400" preserveAspectRatio="none" aria-hidden="true">
+        <g fill="#F2A31C">
+          <path d="M40 0 L92 0 L58 400 L6 400 Z"></path>
+          <path d="M110 0 L138 0 L104 400 L76 400 Z"></path>
+          <path d="M158 0 L200 0 L200 400 L124 400 Z"></path>
+        </g>
+      </svg>
+      <div class="qlabel">The opening discovery question</div>
+      <blockquote>&ldquo;When a customer asks for the mill test cert on a delivery from six months ago &mdash; how long does that take?&rdquo;</blockquote>
+      <p class="qfoot">It is specific, non-threatening, and almost always exposes the entire manual chain sitting behind it: the delivery note, the invoice file, the purchase file, the supplier's email, and finally a scanned PDF somebody has to find.</p>
+    </div>
+
+    <h3 class="blk">Infographic &mdash; the cert retrieval chain</h3>
+    <figure>
+      <div class="figtitle">Six months later, someone has to prove the heat number</div>
+      <div class="figsub">Same request, two systems. The manual chain is not slow because people are slow &mdash; it is slow because the certificate was never attached to the piece.</div>
+      <div class="figbody">
+        <svg viewBox="0 0 900 300" role="img" aria-label="Comparison of manual mill test certificate retrieval across five handoffs taking up to two days, versus a single system lookup taking under one minute.">
+          <text x="0" y="16" class="mono" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="1.6" fill="var(--red)">MANUAL CHAIN</text>
+          <!-- manual track -->
+          <g font-family="IBM Plex Sans, sans-serif">
+            <line x1="0" y1="62" x2="900" y2="62" stroke="var(--rule)" stroke-width="1"></line>
+            <g fill="var(--amber-soft)" stroke="var(--amber)" stroke-width="1">
+              <rect x="0" y="38" width="150" height="48" rx="3"></rect>
+              <rect x="176" y="38" width="150" height="48" rx="3"></rect>
+              <rect x="352" y="38" width="150" height="48" rx="3"></rect>
+              <rect x="528" y="38" width="150" height="48" rx="3"></rect>
+              <rect x="704" y="38" width="196" height="48" rx="3"></rect>
+            </g>
+            <g font-size="12.5" fill="var(--ink)">
+              <text x="14" y="60">Find delivery note</text>
+              <text x="190" y="60">Trace to invoice</text>
+              <text x="366" y="60">Match purchase file</text>
+              <text x="542" y="60">Email the supplier</text>
+              <text x="718" y="60">Hunt the scanned PDF</text>
+            </g>
+            <g font-size="11" font-family="IBM Plex Mono, monospace" fill="var(--muted)">
+              <text x="14" y="77">~20 min</text>
+              <text x="190" y="77">~30 min</text>
+              <text x="366" y="77">~45 min</text>
+              <text x="542" y="77">4 h &ndash; 2 days</text>
+              <text x="718" y="77">unbounded</text>
+            </g>
+            <g fill="var(--rule-2)">
+              <path d="M156 56 l14 6 -14 6 z"></path>
+              <path d="M332 56 l14 6 -14 6 z"></path>
+              <path d="M508 56 l14 6 -14 6 z"></path>
+              <path d="M684 56 l14 6 -14 6 z"></path>
+            </g>
+            <!-- risk band -->
+            <rect x="0" y="104" width="900" height="34" rx="3" fill="var(--red-soft)"></rect>
+            <text x="14" y="126" font-size="12.5" fill="var(--red)" font-weight="600">Cert not found &rarr; shipment rejected on site &rarr; consultant holds the certification &rarr; payment slips a cycle.</text>
+
+            <!-- system track -->
+            <text x="0" y="182" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="1.6" fill="var(--teal)">WITH INSIGHT WMS</text>
+            <rect x="0" y="200" width="470" height="58" rx="3" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="1"></rect>
+            <text x="16" y="224" font-size="13.5" fill="var(--ink)" font-weight="600">Scan the delivery note &rarr; heat no. &rarr; MTC opens</text>
+            <text x="16" y="244" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--teal)">&lt; 60 seconds &middot; from a phone &middot; no one leaves the yard</text>
+            <text x="500" y="221" font-size="12.5" fill="var(--ink-2)">The certificate is attached to the piece at goods receipt,</text>
+            <text x="500" y="240" font-size="12.5" fill="var(--ink-2)">so retrieval is a lookup &mdash; not an investigation.</text>
+            <line x1="484" y1="200" x2="484" y2="258" stroke="var(--rule)" stroke-width="1"></line>
+          </g>
+        </svg>
+      </div>
+      <figcaption>Retrieval time is the visible symptom. The real exposure is that nothing links a physical piece in the yard to the document that certifies it.</figcaption>
+    </figure>
+
+    <h3 class="blk">Operational pain &mdash; the eight that show up in every steel yard</h3>
+    <div class="pains">
+      <div class="pain" style="--sev:var(--red)">
+        <div class="ptop"><h4>Inventory identity</h4><span class="sev">Critical</span></div>
+        <p>Steel doesn't scan like cartons. Heat numbers, mill test certs and grade/spec have to stay attached to each piece. Manual tracking means MTC hunting at delivery.</p>
+        <div class="cost">Exposure &mdash; <b>a lost cert can reject a shipment</b> on a certified project.</div>
+      </div>
+      <div class="pain" style="--sev:var(--red)">
+        <div class="ptop"><h4>Dual UOM: pieces vs weight</h4><span class="sev">Critical</span></div>
+        <p>Sold and costed by MT, stored and moved by piece or bundle. Hold only one unit and theoretical weight drifts from weighbridge actual.</p>
+        <div class="cost">Exposure &mdash; <b>gross margin becomes fictional</b>, invoice by invoice.</div>
+      </div>
+      <div class="pain" style="--sev:var(--amber)">
+        <div class="ptop"><h4>Remnants and cut pieces</h4><span class="sev">High</span></div>
+        <p>Cutting and shearing create offcuts that get logged badly or vanish. The section is reordered anyway because nobody can see the remnant.</p>
+        <div class="cost">Exposure &mdash; <b>cash sitting in the yard</b>, bought twice.</div>
+      </div>
+      <div class="pain" style="--sev:var(--amber)">
+        <div class="ptop"><h4>Yard location accuracy</h4><span class="sev">High</span></div>
+        <p>Open stockyards, crane and forklift movement, no bin structure. Staff know where things are by memory.</p>
+        <div class="cost">Exposure &mdash; <b>one resignation and picking time doubles.</b></div>
+      </div>
+      <div class="pain" style="--sev:var(--amber)">
+        <div class="ptop"><h4>Stock aging &amp; price exposure</h4><span class="sev">High</span></div>
+        <p>Steel is a commodity with volatile input pricing. Slow-moving tonnage bought at an old price sits quietly against current market.</p>
+        <div class="cost">Exposure &mdash; <b>GP dies silently</b> without aging by grade and section.</div>
+      </div>
+      <div class="pain" style="--sev:var(--red)">
+        <div class="ptop"><h4>Order promising</h4><span class="sev">Critical</span></div>
+        <p>Sales quotes from a stock figure that is a day old, then discovers the section was already allocated to another job.</p>
+        <div class="cost">Exposure &mdash; <b>missed dates on contracts carrying LD clauses.</b></div>
+      </div>
+      <div class="pain" style="--sev:var(--red)">
+        <div class="ptop"><h4>Reservation vs allocation</h4><span class="sev">Critical</span></div>
+        <p>Project customers block stock verbally. Without a system reservation with an owner and an expiry, the same batch gets sold twice.</p>
+        <div class="cost">Exposure &mdash; <b>double-selling a heat</b> you cannot substitute.</div>
+      </div>
+      <div class="pain" style="--sev:var(--amber)">
+        <div class="ptop"><h4>Physical counts</h4><span class="sev">High</span></div>
+        <p>Wall-to-wall counts on heavy sections shut the yard down. Cycle counting is near-impossible without location and weight logic.</p>
+        <div class="cost">Exposure &mdash; <b>lost trading days</b>, once or twice a year.</div>
+      </div>
+    </div>
+
+    <h3 class="blk">Infographic &mdash; where the tonnage and the margin leak</h3>
+    <div class="g2">
+      <figure>
+        <div class="figtitle">Dual UOM drift</div>
+        <div class="figsub">One consignment of 12&nbsp;m UB 305&times;165, priced per MT, counted per piece.</div>
+        <div class="figbody">
+          <svg viewBox="0 0 520 250" role="img" aria-label="Bar comparison: theoretical weight 24.60 MT versus weighbridge actual 24.06 MT, a 0.54 MT variance worth roughly AED 1,350 on one load.">
+            <g font-family="IBM Plex Sans, sans-serif">
+              <text x="0" y="14" font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="1.4" fill="var(--muted)">40 PCS &middot; GRADE S275JR &middot; HEAT 4417-B</text>
+
+              <text x="0" y="46" font-size="12.5" fill="var(--ink-2)">Theoretical (pcs &times; nominal kg/m)</text>
+              <rect x="0" y="56" width="440" height="26" rx="2" fill="var(--surface-2)"></rect>
+              <rect x="0" y="56" width="440" height="26" rx="2" fill="var(--steel)" opacity=".85"></rect>
+              <text x="452" y="74" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--ink)">24.60</text>
+
+              <text x="0" y="112" font-size="12.5" fill="var(--ink-2)">Weighbridge actual</text>
+              <rect x="0" y="122" width="440" height="26" rx="2" fill="var(--surface-2)"></rect>
+              <rect x="0" y="122" width="430" height="26" rx="2" fill="var(--amber)"></rect>
+              <text x="452" y="140" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--amber)">24.06</text>
+
+              <line x1="430" y1="118" x2="430" y2="164" stroke="var(--red)" stroke-width="1" stroke-dasharray="3 3"></line>
+              <line x1="440" y1="52" x2="440" y2="164" stroke="var(--red)" stroke-width="1" stroke-dasharray="3 3"></line>
+              <text x="300" y="180" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--red)">&Delta; 0.54 MT &middot; 2.2% of the load</text>
+
+              <rect x="0" y="198" width="520" height="42" rx="3" fill="var(--red-soft)"></rect>
+              <text x="14" y="216" font-size="12.5" fill="var(--red)" font-weight="600">&asymp; AED 1,350 unbilled on one load.</text>
+              <text x="14" y="233" font-size="12" fill="var(--ink-2)">Repeat it across a month of deliveries and the GP report is fiction.</text>
+            </g>
+          </svg>
+        </div>
+        <figcaption>Illustrative figures at AED 2,500/MT. Insight holds PCS and MT on the same stock line and books the variance instead of hiding it.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="figtitle">Remnant leakage</div>
+        <div class="figsub">What happens to a 12&nbsp;m plate after the cutting list is served.</div>
+        <div class="figbody">
+          <svg viewBox="0 0 520 250" role="img" aria-label="Diagram of a 12 metre plate cut into three issued pieces and one 2.4 metre offcut; the offcut is untracked, so the section is reordered.">
+            <g font-family="IBM Plex Sans, sans-serif">
+              <text x="0" y="14" font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="1.4" fill="var(--muted)">PLATE 12000 &times; 1500 &times; 10 &middot; HEAT 5120-A</text>
+
+              <rect x="0" y="34" width="520" height="42" rx="2" fill="var(--surface-2)" stroke="var(--rule-2)" stroke-width="1"></rect>
+              <rect x="0" y="34" width="160" height="42" rx="2" fill="var(--teal)" opacity=".8"></rect>
+              <rect x="164" y="34" width="130" height="42" fill="var(--teal)" opacity=".8"></rect>
+              <rect x="298" y="34" width="118" height="42" fill="var(--teal)" opacity=".8"></rect>
+              <rect x="420" y="34" width="100" height="42" rx="2" fill="var(--amber)"></rect>
+              <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#fff">
+                <text x="12" y="60">CUT 1</text><text x="176" y="60">CUT 2</text><text x="310" y="60">CUT 3</text>
+              </g>
+              <text x="432" y="60" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#1B2228" font-weight="600">2.4 m</text>
+              <text x="0" y="94" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--teal)">Issued to job &mdash; costed, invoiced</text>
+              <text x="376" y="94" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--amber)">Offcut</text>
+
+              <line x1="0" y1="112" x2="520" y2="112" stroke="var(--rule)"></line>
+
+              <text x="0" y="138" font-size="12.5" fill="var(--ink-2)">Untracked, the offcut takes one of three routes:</text>
+              <g font-size="12.5" fill="var(--ink)">
+                <text x="14" y="162">&mdash; stacked behind the shed and forgotten</text>
+                <text x="14" y="182">&mdash; sold as scrap at a fraction of book value</text>
+                <text x="14" y="202">&mdash; still on the books, so nobody trusts the number</text>
+              </g>
+              <rect x="0" y="214" width="520" height="30" rx="3" fill="var(--red-soft)"></rect>
+              <text x="14" y="234" font-size="12.5" fill="var(--red)" font-weight="600">Meanwhile the same section is reordered at today's price.</text>
+            </g>
+          </svg>
+        </div>
+        <figcaption>Insight books a cut as a transaction: parent piece consumed, child remnant created, heat number and cert inherited, remnant aged and offered to sales.</figcaption>
+      </figure>
+    </div>
+
+    <h3 class="blk">Technological pain &mdash; why WMS projects fail, and what we do about it</h3>
+    <p class="lede" style="margin-bottom:18px">Most failed WMS implementations are not software failures. They are data, process, integration and adoption failures that the software then gets blamed for. These are the eight we design against from day one.</p>
+    <div class="tblwrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Failure mode</th>
+            <th>What it looks like on site</th>
+            <th>Our control</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="lead"><span class="tag">Failure 01</span>Dirty master data</td>
+            <td>Duplicate SKUs, missing nominal weights, no grade or section standard, no location register. The system inherits the mess and confidence collapses in week one.</td>
+            <td class="ok">Data cleanse is a gated workstream with its own sign-off &mdash; item master, UOM conversions, grades, heats and yard locations must pass before configuration starts.</td>
+          </tr>
+          <tr>
+            <td class="lead"><span class="tag">Failure 02</span>Paving the cowpath</td>
+            <td>The current manual process is configured into software, so the same rework, the same double handling, the same verbal reservations &mdash; now with more clicks.</td>
+            <td class="ok">Process redesign in the Define stage. We map as-is, agree to-be, and only then configure. Anything we automate has to survive that question first.</td>
+          </tr>
+          <tr>
+            <td class="lead"><span class="tag">Failure 03</span>Integration underestimated</td>
+            <td>WMS and ERP disagree on stock. Sales trusts one screen, finance trusts the other, and reconciliation becomes a monthly job.</td>
+            <td class="ok">Insight's Universal Data Interchange Hub &mdash; EDI, XML or flat file &mdash; with the interface contract signed at design and volume-tested before pilot. Proven against SAP, Dynamics AX/NAV/BC, Oracle EBS, Orion, Scala.</td>
+          </tr>
+          <tr>
+            <td class="lead"><span class="tag">Failure 04</span>Big-bang go-live</td>
+            <td>Every zone, every SKU class, every process on one date. One defect stops trading, and the business reverts to spreadsheets to keep shipping.</td>
+            <td class="ok">Phased rollout. One yard zone and one product class go live first as a pilot, with the manual fallback still available, then we scale by zone.</td>
+          </tr>
+          <tr>
+            <td class="lead"><span class="tag">Failure 05</span>Infrastructure ignored</td>
+            <td>RF coverage dies at the far stack. Labels fade in the sun or peel in the humidity. Handhelds break the first time they're dropped near a crane.</td>
+            <td class="ok">Site survey and coverage design before go-live, rugged and vehicle-mounted terminals, weather-durable tags, and an RFID-versus-barcode decision per zone &mdash; RFID counts roughly 100&times; faster, but not everywhere earns it.</td>
+          </tr>
+          <tr>
+            <td class="lead"><span class="tag">Failure 06</span>No process ownership</td>
+            <td>No named owner for stock accuracy or cert attachment. When it gets busy, the yard reverts to memory and the data quietly rots.</td>
+            <td class="ok">Named process owners per function, floor-level training in the operators' language, and a steering committee that reviews accuracy as a KPI, not an IT ticket.</td>
+          </tr>
+          <tr>
+            <td class="lead"><span class="tag">Failure 07</span>Scope creep</td>
+            <td>Every stakeholder adds a report. The go-live date moves twice, the budget moves once, and momentum is gone before anyone sees value.</td>
+            <td class="ok">PMI change control against a signed scope baseline. New asks are logged, costed and scheduled into a later phase &mdash; not absorbed silently.</td>
+          </tr>
+          <tr>
+            <td class="lead"><span class="tag">Failure 08</span>Success never defined</td>
+            <td>No baseline was measured before go-live, so nobody can prove the system worked. The project is judged on anecdote.</td>
+            <td class="ok">Baseline the metrics in section 04 during Discovery, instrument them in the system, and review them at 30, 60 and 90 days post go-live.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 03 HOW ============ -->
+<section id="how">
+  <div class="wrap">
+    <div class="eyebrow"><span class="idx">03</span><span>How</span><span class="bar"></span></div>
+    <h2 class="sh">Insight SCM Suite, configured for a stockyard &mdash; not a carton warehouse.</h2>
+    <p class="lede">Insight is a set of tightly integrated, highly configurable supply chain modules covering Open Yard, Warehousing, Distribution, Transportation and Freight on one track-and-trace platform. It sits over your yard and talks to your ERP; it does not replace it.</p>
+
+    <h3 class="blk">Pain &rarr; mechanism</h3>
+    <div class="caps">
+      <div class="cap">
+        <div class="n mono">01</div>
+        <div class="l"><b>Inventory identity</b><span>Heat no., MTC, grade, spec</span></div>
+        <div class="r">Heat number and mill certificate attach to the piece or bundle at goods receipt and travel with it through cutting, transfer and despatch. Retrieval is a lookup from the delivery note &mdash; <code>DN &rarr; heat &rarr; MTC</code>.</div>
+      </div>
+      <div class="cap">
+        <div class="n mono">02</div>
+        <div class="l"><b>Dual UOM</b><span>PCS and MT on one line</span></div>
+        <div class="r">Both units live on the same stock record with a per-item conversion. Weighbridge actual is captured against theoretical, variance is booked to a tolerance you set, and costing uses the weight you actually shipped.</div>
+      </div>
+      <div class="cap">
+        <div class="n mono">03</div>
+        <div class="l"><b>Remnants</b><span>Cut, shear, offcut</span></div>
+        <div class="r">A cut is a transaction. The parent is consumed, the child remnant is created with inherited heat and cert lineage, given its own location and aging clock, and surfaced to sales before a fresh section is bought.</div>
+      </div>
+      <div class="cap">
+        <div class="n mono">04</div>
+        <div class="l"><b>Yard location</b><span>Open-yard, no racking</span></div>
+        <div class="r">The yard is modelled as row / bay / stack rather than bin. RF-directed putaway and picking replace memory, so a new operator finds a section as fast as a ten-year man.</div>
+      </div>
+      <div class="cap">
+        <div class="n mono">05</div>
+        <div class="l"><b>Aging &amp; price exposure</b><span>By grade and section</span></div>
+        <div class="r">Aging buckets by grade, section and heat, held against landed cost per batch. Slow-moving tonnage is flagged while you can still move it, not at year-end.</div>
+      </div>
+      <div class="cap">
+        <div class="n mono">06</div>
+        <div class="l"><b>Order promising</b><span>Real-time ATP</span></div>
+        <div class="r">Sales quotes against <code>on-hand &minus; allocated &minus; reserved</code>, live, on the same screen as the quote. No day-old stock sheet, no discovering the allocation after the promise.</div>
+      </div>
+      <div class="cap">
+        <div class="n mono">07</div>
+        <div class="l"><b>Reservation vs allocation</b><span>Project vs general stock</span></div>
+        <div class="r">Project stock is reserved with an owner, a reference and an expiry; general distribution stock stays open. Hard allocation on order confirmation. The same heat cannot be sold twice.</div>
+      </div>
+      <div class="cap">
+        <div class="n mono">08</div>
+        <div class="l"><b>Counting</b><span>Cycle, not wall-to-wall</span></div>
+        <div class="r">Count by zone, grade or aging bucket on a rolling schedule, with weight tolerance logic for heavy sections. The yard keeps trading while it counts.</div>
+      </div>
+    </div>
+
+    <h3 class="blk">Around the core</h3>
+    <div class="g3">
+      <div class="tile">
+        <div class="figtitle">Capture</div>
+        <div class="figsub">Handheld and vehicle-mounted RF terminals with scanners for receipt, put-away, picking, transfer and despatch. Barcode where it earns its place, RFID where speed of count justifies the recurring tag cost.</div>
+      </div>
+      <div class="tile">
+        <div class="figtitle">Integrate</div>
+        <div class="figsub">Universal Data Interchange Hub &mdash; purchase orders, ASNs and sales orders in; receipts and shipments out. EDI, XML and flat file, integrated at logic and database level rather than by file drop.</div>
+      </div>
+      <div class="tile">
+        <div class="figtitle">Report</div>
+        <div class="figsub">Native dashboards, plus a data structure any BI tool can read. Power BI, or whatever you already run &mdash; stock by grade, aging by heat, weight variance, picking productivity.</div>
+      </div>
+    </div>
+
+    <h3 class="blk">Delivery &mdash; PMI framework, phased rollout</h3>
+    <div class="road">
+      <div class="ph"><div class="wk">Weeks 1&ndash;2</div><b>Discover</b><p>Yard walkthrough, cert retrieval test, as-is process map, baseline the metrics in section 04.</p><div class="out">Out &rarr; Baseline report</div></div>
+      <div class="ph"><div class="wk">Weeks 3&ndash;5</div><b>Define</b><p>To-be process, item master and UOM standard, yard location model, integration contract with your ERP.</p><div class="out">Out &rarr; Signed scope &amp; BRD</div></div>
+      <div class="ph"><div class="wk">Weeks 6&ndash;11</div><b>Build</b><p>Configuration, data cleanse and migration, interface build, RF coverage survey and hardware.</p><div class="out">Out &rarr; Tested system</div></div>
+      <div class="ph"><div class="wk">Weeks 12&ndash;15</div><b>Pilot</b><p>One yard zone, one product class. Parallel run with manual fallback. Operator training on the floor.</p><div class="out">Out &rarr; Go / no-go</div></div>
+      <div class="ph"><div class="wk">Weeks 16+</div><b>Roll out</b><p>Zone by zone, then hypercare and SLA-backed managed service. Benefit review at 30 / 60 / 90 days.</p><div class="out">Out &rarr; Benefits realised</div></div>
+    </div>
+    <p class="note" style="margin-top:14px">Indicative timeline for a single-site stockyard. Confirmed against your actual SKU count, yard layout and ERP after Discovery. Governance runs through a joint steering committee with a named sponsor on both sides.</p>
+  </div>
+</section>
+
+<!-- ============ 04 RESULTS ============ -->
+<section id="results">
+  <div class="wrap">
+    <div class="eyebrow"><span class="idx">04</span><span>Results expected</span><span class="bar"></span></div>
+    <h2 class="sh">What changes, and how you will know.</h2>
+    <p class="lede">Every line below is measured before go-live in Discovery, instrumented in the system, and reviewed at 30, 60 and 90 days. Targets, not guarantees &mdash; they get committed once we have your baseline.</p>
+
+    <div class="res" style="margin-top:26px">
+      <div class="resrow head"><div>Metric</div><div>Typical today</div><div>Target</div><div>What drives it</div></div>
+      <div class="resrow">
+        <div class="metric">Mill cert retrieval<span>request &rarr; document in hand</span></div>
+        <div class="before">4 h &ndash; 2 days</div>
+        <div class="after">&lt; 60 sec</div>
+        <div class="why">Cert bound to the piece at receipt; lookup from the delivery note.</div>
+      </div>
+      <div class="resrow">
+        <div class="metric">Stock accuracy by piece<span>system vs physical</span></div>
+        <div class="before">85 &ndash; 92%</div>
+        <div class="after">98%+</div>
+        <div class="why">RF-confirmed movements plus rolling cycle counts by zone.</div>
+      </div>
+      <div class="resrow">
+        <div class="metric">Weight variance<span>theoretical vs weighbridge</span></div>
+        <div class="before">not measured</div>
+        <div class="after">&plusmn; 2% tracked</div>
+        <div class="why">Dual UOM stock line; variance booked, not absorbed.</div>
+      </div>
+      <div class="resrow">
+        <div class="metric">Remnant recovery<span>offcuts back into sellable stock</span></div>
+        <div class="before">untracked</div>
+        <div class="after">100% logged</div>
+        <div class="why">Cutting creates a child SKU with heat lineage and its own aging clock.</div>
+      </div>
+      <div class="resrow">
+        <div class="metric">Picking time per order<span>instruction &rarr; loaded</span></div>
+        <div class="before">memory-dependent</div>
+        <div class="after">&minus;30 &ndash; 40%</div>
+        <div class="why">Directed picking on row / bay / stack; no reliance on who is on shift.</div>
+      </div>
+      <div class="resrow">
+        <div class="metric">Double-sold batches<span>same heat promised twice</span></div>
+        <div class="before">occasional</div>
+        <div class="after">zero</div>
+        <div class="why">System reservation with owner and expiry; hard allocation on confirmation.</div>
+      </div>
+      <div class="resrow">
+        <div class="metric">Order promise reliability<span>quoted date met</span></div>
+        <div class="before">stock sheet &plusmn; 1 day</div>
+        <div class="after">live ATP</div>
+        <div class="why">Quoting against on-hand minus allocated minus reserved, in real time.</div>
+      </div>
+      <div class="resrow">
+        <div class="metric">Yard downtime for counts<span>trading days lost per year</span></div>
+        <div class="before">2 &ndash; 5 days</div>
+        <div class="after">zero</div>
+        <div class="why">Cycle counting by zone and grade replaces wall-to-wall shutdown.</div>
+      </div>
+      <div class="resrow">
+        <div class="metric">Aged tonnage visibility<span>by grade, section and heat</span></div>
+        <div class="before">year-end only</div>
+        <div class="after">daily</div>
+        <div class="why">Aging buckets against landed cost per batch, flagged while still sellable.</div>
+      </div>
+    </div>
+
+    <h3 class="blk">Where the money actually is</h3>
+    <div class="g3">
+      <div class="tile">
+        <div class="figtitle">Recovered working capital</div>
+        <div class="figsub">Remnants and aged tonnage that were invisible become sellable stock &mdash; and stop being reordered at today's price.</div>
+      </div>
+      <div class="tile">
+        <div class="figtitle">Recovered gross margin</div>
+        <div class="figsub">Weight variance stops leaking into the P&amp;L unnoticed. You bill what you shipped, and you know the real GP per grade.</div>
+      </div>
+      <div class="tile">
+        <div class="figtitle">Avoided penalty</div>
+        <div class="figsub">Certified projects with LD clauses. One rejected shipment or one missed date usually costs more than the year's licence.</div>
+      </div>
+    </div>
+
+    <div class="close">
+      <h3>Next step: a 90-minute walkthrough of the yard.</h3>
+      <p>We time the cert retrieval, count one zone, and compare the system figure against the physical stack. You get a written baseline whether or not you go ahead &mdash; and we both stop guessing what this is worth.</p>
+      <div class="cgrid">
+        <div><div class="lab">Contact</div><div class="val">Hans Hameed<br>AVP &mdash; Business Applications</div></div>
+        <div><div class="lab">Direct</div><div class="val"><a href="tel:+971543070261">+971 54 307 0261</a><br><a href="mailto:HansH@gerabsys.com">HansH@gerabsys.com</a></div></div>
+        <div><div class="lab">Office</div><div class="val">Office 1002, 10th Floor, Al Fattan Plaza,<br>Al Garhoud, Airport Road, Dubai, UAE</div></div>
+        <div><div class="lab">Web</div><div class="val"><a href="https://www.gerabsys.com">www.gerabsys.com</a></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap fin">
+    <div>Gerab System Solutions LLC &mdash; &ldquo;Your business, our commitment&rdquo;</div>
+    <div>Prepared for Al Nimr Steel Trading LLC &middot; Dubai &middot; 2026</div>
+  </div>
+</footer>
