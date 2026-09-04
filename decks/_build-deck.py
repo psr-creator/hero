@@ -47,15 +47,18 @@ FALLBACK_LG = ('<div class="cl-txt lg"><b>AL NIMR STEEL</b><i>TRADING LLC</i>'
                '<u lang="ar">النمر لتجارة '
                'الحديد ذ.م.م</u></div>')
 
-client = next((p for p in ('alnimr_logo.png', 'alnimr_logo.jpg', 'alnimr_logo.jpeg') if os.path.exists(p)), None)
-if client:
-    sm = '<img class="cl" src="%s" alt="Al Nimr Steel Trading LLC">' % data_uri(client, 60, 320, colors=128)
-    lg = ('<img class="cl" style="height:58px" src="%s" alt="Al Nimr Steel Trading LLC">'
-          % data_uri(client, 140, 700, colors=200))
-    print('client logo: embedded from', client)
-else:
-    sm, lg = FALLBACK_SM, FALLBACK_LG
-    print('client logo: NOT FOUND, using type lockup (drop alnimr_logo.png here and re-run)')
+def logo_uri(path, maxw):
+    """Wide client lockup: keep the alpha channel so it sits on any bar."""
+    im = Image.open(path).convert('RGBA')
+    im = im.crop(im.getbbox() or (0, 0, im.width, im.height))
+    if im.width > maxw:
+        im = im.resize((maxw, round(im.height * maxw / im.width)), Image.LANCZOS)
+    buf = io.BytesIO()
+    im.save(buf, 'PNG', optimize=True)
+    return 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode(), len(buf.getvalue())
+
+
+
 
 def photo_uri(path, maxw, quality=80):
     """Downscale a photo or scan and return a JPEG data URI."""
@@ -102,6 +105,16 @@ else:
     mtc_html = '<div class="sheet none">Mill test certificate<br>image goes here</div>'
     mtc_cap = 'Example mill test certificate.'
     print('certificate: NOT FOUND, using placeholder (drop mtc.png here and re-run)')
+
+client = find('alnimr_logo', 'alnimr', 'client_logo')
+if client:
+    uri, n = logo_uri(client, 640)
+    sm = '<img class="cl" src="%s" alt="Al Nimr Steel Trading LLC">' % uri
+    lg = '<img class="cl" style="height:54px" src="%s" alt="Al Nimr Steel Trading LLC">' % uri
+    print('client logo: %s embedded, %d KB' % (client, n // 1024))
+else:
+    sm, lg = FALLBACK_SM, FALLBACK_LG
+    print('client logo: NOT FOUND, using type lockup (drop alnimr_logo.png here and re-run)')
 
 html = open('deck2_template.html', encoding='utf-8').read()
 html = (html.replace('{{GERAB}}', gerab)
