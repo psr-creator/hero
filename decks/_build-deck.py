@@ -57,11 +57,60 @@ else:
     sm, lg = FALLBACK_SM, FALLBACK_LG
     print('client logo: NOT FOUND, using type lockup (drop alnimr_logo.png here and re-run)')
 
+def photo_uri(path, maxw, quality=80):
+    """Downscale a photo or scan and return a JPEG data URI."""
+    im = Image.open(path)
+    if im.mode in ('RGBA', 'LA', 'P'):
+        bg = Image.new('RGB', im.size, (255, 255, 255))
+        bg.paste(im.convert('RGBA'), mask=im.convert('RGBA').split()[-1])
+        im = bg
+    else:
+        im = im.convert('RGB')
+    if im.width > maxw:
+        im = im.resize((maxw, round(im.height * maxw / im.width)), Image.LANCZOS)
+    buf = io.BytesIO()
+    im.save(buf, 'JPEG', quality=quality, optimize=True, progressive=True)
+    return 'data:image/jpeg;base64,' + base64.b64encode(buf.getvalue()).decode(), len(buf.getvalue())
+
+
+def find(*stems):
+    for stem in stems:
+        for ext in ('.jpg', '.jpeg', '.png', '.webp'):
+            if os.path.exists(stem + ext):
+                return stem + ext
+    return None
+
+
+yard = find('yard', 'steelyard', 'hero')
+if yard:
+    uri, n = photo_uri(yard, 1900, 78)
+    hero = '<div class="shot" style="background-image:url(%s)"></div>' % uri
+    print('hero photo: %s embedded, %d KB' % (yard, n // 1024))
+else:
+    hero = '<div class="shot none"></div>'
+    print('hero photo: NOT FOUND, using gradient (drop yard.jpg here and re-run)')
+
+mtc = find('mtc', 'certificate', 'cert')
+if mtc:
+    uri, n = photo_uri(mtc, 1500, 84)
+    thumb, _ = photo_uri(mtc, 760, 80)
+    mtc_html = ('<div class="sheet" style="background-image:url(%s)" data-full="%s" '
+                'role="button" tabindex="0" aria-label="Enlarge the mill test certificate"></div>' % (thumb, uri))
+    mtc_cap = 'Example mill test certificate. Click to enlarge.'
+    print('certificate: %s embedded, %d KB' % (mtc, n // 1024))
+else:
+    mtc_html = '<div class="sheet none">Mill test certificate<br>image goes here</div>'
+    mtc_cap = 'Example mill test certificate.'
+    print('certificate: NOT FOUND, using placeholder (drop mtc.png here and re-run)')
+
 html = open('deck2_template.html', encoding='utf-8').read()
 html = (html.replace('{{GERAB}}', gerab)
             .replace('{{ALNIMR_SM}}', sm)
             .replace('{{ALNIMR_LG}}', lg)
-            .replace('{{REFS}}', refs))
+            .replace('{{REFS}}', refs)
+            .replace('{{HERO}}', hero)
+            .replace('{{MTC}}', mtc_html)
+            .replace('{{MTCCAP}}', mtc_cap))
 assert '{{' not in html, 'unreplaced placeholder'
 open('alnimr-wms-deck.html', 'w', encoding='utf-8').write(html)
 
