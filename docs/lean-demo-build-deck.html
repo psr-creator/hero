@@ -1,0 +1,922 @@
+<title>Lean Appraisal Demo Build</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --serif:"Newsreader",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --paper:#eceff0; --surface:#ffffff; --surface-2:#e7eceb; --surface-3:#f4f7f6;
+  --ink:#101719; --ink-2:#44545a; --ink-3:#728286;
+  --rule:#d1dad8; --rule-2:#bcc8c5;
+  --accent:#0b6153; --accent-soft:#e0efec;
+  --signal:#a3441e; --signal-soft:#f8e9e1;
+  --ok:#2f6f4f; --warn:#b07018;
+  --b1:#a3312a; --b2:#b96b1f; --b3:#6f7a3d; --b4:#3a7a57; --b5:#155c4c;
+  --shadow:0 1px 2px rgba(16,23,25,.05),0 16px 44px -26px rgba(16,23,25,.42);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#080d0e; --surface:#131b1d; --surface-2:#1b2528; --surface-3:#0f1719;
+  --ink:#e2e9e7; --ink-2:#a6b4b3; --ink-3:#7e8f8f;
+  --rule:#263336; --rule-2:#374549;
+  --accent:#4aa794; --accent-soft:#10302b;
+  --signal:#e08a5d; --signal-soft:#301e17;
+  --ok:#5fae83; --warn:#d9a44e;
+  --b1:#d9736a; --b2:#dd9b4e; --b3:#a8b46a; --b4:#5fae83; --b5:#3f9a83;
+  --shadow:0 1px 2px rgba(0,0,0,.5),0 18px 50px -28px rgba(0,0,0,.9);
+}}
+:root[data-theme="dark"]{
+  --paper:#080d0e; --surface:#131b1d; --surface-2:#1b2528; --surface-3:#0f1719;
+  --ink:#e2e9e7; --ink-2:#a6b4b3; --ink-3:#7e8f8f;
+  --rule:#263336; --rule-2:#374549;
+  --accent:#4aa794; --accent-soft:#10302b;
+  --signal:#e08a5d; --signal-soft:#301e17;
+  --ok:#5fae83; --warn:#d9a44e;
+  --b1:#d9736a; --b2:#dd9b4e; --b3:#a8b46a; --b4:#5fae83; --b5:#3f9a83;
+  --shadow:0 1px 2px rgba(0,0,0,.5),0 18px 50px -28px rgba(0,0,0,.9);
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+
+/* ---------- chrome ---------- */
+.bar{position:sticky;top:0;z-index:40;background:var(--paper);border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 20px}
+.bar .brand{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-right:auto;white-space:nowrap}
+.bar button{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;background:var(--surface);color:var(--ink-2);border:1px solid var(--rule-2);border-radius:3px;padding:6px 11px;cursor:pointer;line-height:1}
+.bar button:hover{border-color:var(--accent);color:var(--accent)}
+.bar button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.bar .count{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;min-width:52px;text-align:center}
+.bar .grp{display:flex;gap:6px;align-items:center}
+.dots{display:flex;gap:4px;flex-wrap:wrap;padding:0 20px 10px;background:var(--paper);border-bottom:1px solid var(--rule);position:sticky;top:45px;z-index:39}
+.dots button{width:22px;height:20px;border:1px solid var(--rule-2);background:var(--surface);border-radius:2px;cursor:pointer;font-family:var(--mono);font-size:9.5px;color:var(--ink-3);padding:0;line-height:1}
+.dots button[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+body.doc .dots{display:none}
+
+/* ---------- slides ---------- */
+.deckwrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:22px 60px}
+.slide{display:none;background:var(--surface);border:1px solid var(--rule);border-radius:6px;box-shadow:var(--shadow);padding:clamp(22px,3.2vw,40px);flex-direction:column;min-width:0}
+.slide.active{display:flex}
+body.deck .slide{min-height:min(72vh,660px)}
+body.doc .slide{display:flex;margin-bottom:26px;min-height:auto}
+.eyebrow{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 12px}
+.eyebrow.sg{color:var(--signal)}
+h2.st{font-family:var(--serif);font-weight:600;font-size:clamp(23px,3.3vw,36px);line-height:1.12;letter-spacing:-.015em;margin:0 0 6px;text-wrap:balance;max-width:26ch}
+p.sub{font-size:clamp(14.5px,1.6vw,17px);color:var(--ink-2);margin:0 0 20px;max-width:76ch;line-height:1.5}
+.body{flex:1;min-width:0}
+p{margin:0 0 12px;max-width:74ch}
+ul{margin:0 0 12px;padding-left:18px;max-width:74ch}
+li{margin-bottom:5px}
+strong{font-weight:600}
+code,.mono{font-family:var(--mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
+.foot{margin-top:auto;padding-top:18px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink-3);display:flex;gap:10px;align-items:baseline}
+.foot b{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);flex:none}
+.foot.sg b{color:var(--signal)}
+
+/* ---------- cover ---------- */
+.cover{justify-content:center}
+.cover h1{font-family:var(--serif);font-weight:500;font-size:clamp(32px,6vw,58px);line-height:1.05;letter-spacing:-.02em;margin:0 0 18px;max-width:17ch;text-wrap:balance}
+.cover .lede{font-family:var(--serif);font-style:italic;font-size:clamp(17px,2.3vw,22px);color:var(--ink-2);max-width:56ch;margin:0 0 30px;line-height:1.4}
+.facts{display:flex;flex-wrap:wrap;gap:0;border-top:1px solid var(--rule)}
+.facts div{flex:1 1 130px;padding:14px 18px 0 0;min-width:120px}
+.facts dt{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);margin:0 0 4px}
+.facts dd{margin:0;font-size:clamp(19px,2.6vw,26px);font-family:var(--serif);font-weight:600;line-height:1.1}
+.facts dd small{display:block;font-family:var(--sans);font-size:12px;font-weight:400;color:var(--ink-3);margin-top:3px;line-height:1.35}
+
+/* ---------- two-col / cards ---------- */
+.cols{display:grid;grid-template-columns:1fr;gap:20px}
+@media(min-width:760px){.cols.two{grid-template-columns:1fr 1fr}.cols.three{grid-template-columns:1fr 1fr 1fr}}
+.panel{border-top:2px solid var(--ink);padding-top:11px}
+.panel.cut{border-top-color:var(--rule-2)}
+.panel.keep{border-top-color:var(--accent)}
+.panel.sg{border-top-color:var(--signal)}
+.panel h3{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;margin:0 0 10px}
+.panel.cut h3{color:var(--ink-3)}
+.panel.keep h3{color:var(--accent)}
+.panel.sg h3{color:var(--signal)}
+.panel ul{padding-left:16px;font-size:13.5px;margin-bottom:0}
+.panel.cut ul{color:var(--ink-3)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;margin:4px 0 14px}
+.tile{background:var(--surface-3);border:1px solid var(--rule);border-radius:4px;padding:13px 15px}
+.tile .n{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--accent);letter-spacing:.1em;display:block;margin-bottom:5px}
+.tile b{display:block;font-size:14px;margin-bottom:3px}
+.tile span{font-size:12.5px;color:var(--ink-3);line-height:1.42;display:block}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;margin:6px 0 16px;border:1px solid var(--rule);border-radius:4px}
+table{border-collapse:collapse;width:100%;font-size:12.8px;min-width:480px;background:var(--surface)}
+th{text-align:left;font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);padding:9px 12px;border-bottom:1px solid var(--rule-2);white-space:nowrap;background:var(--surface-3)}
+td{padding:8px 12px;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.42}
+tr:last-child td{border-bottom:none}
+td.f{font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--accent);white-space:nowrap}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.hl td{background:var(--signal-soft)}
+tr.total td{background:var(--surface-2);font-weight:600}
+.req{display:inline-block;font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.06em;padding:1px 5px;border-radius:2px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.req.opt{background:var(--surface-2);color:var(--ink-3)}
+.band{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:3px;font-family:var(--mono);font-size:11px;font-weight:600;color:#fff}
+.band.b1{background:var(--b1)}.band.b2{background:var(--b2)}.band.b3{background:var(--b3)}.band.b4{background:var(--b4)}.band.b5{background:var(--b5)}
+
+/* ---------- notes / steps ---------- */
+.note{border-left:2px solid var(--accent);background:var(--accent-soft);padding:13px 17px;margin:14px 0;border-radius:0 4px 4px 0}
+.note.sg{border-left-color:var(--signal);background:var(--signal-soft)}
+.note p{margin:0;font-size:13.5px;max-width:70ch}
+.note p+p{margin-top:8px}
+.note .lead{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:5px}
+.note.sg .lead{color:var(--signal)}
+.formula{font-family:var(--mono);font-size:13px;background:var(--surface-3);border:1px solid var(--rule);border-left:2px solid var(--signal);padding:13px 17px;margin:12px 0;border-radius:0 4px 4px 0;overflow-x:auto;line-height:1.85}
+.formula i{font-style:normal;color:var(--ink-3)}
+.formula b{color:var(--signal)}
+ol.steps{counter-reset:s;list-style:none;padding:0;margin:4px 0;max-width:78ch}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:26px minmax(0,1fr);gap:13px;padding:9px 0;border-bottom:1px solid var(--rule);margin:0}
+ol.steps li:last-child{border-bottom:none}
+ol.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--ink-3);padding-top:3px}
+ol.steps b{display:block;font-size:13.8px;margin-bottom:1px}
+ol.steps span{font-size:12.8px;color:var(--ink-2);line-height:1.45;display:block}
+
+/* ---------- figures ---------- */
+figure{margin:8px 0 14px}
+.dgm-wrap{overflow-x:auto}
+svg.dgm{display:block;width:100%;height:auto;min-width:520px}
+.dgm rect.n{fill:var(--surface);stroke:var(--rule-2);stroke-width:1.25;rx:3px}
+.dgm rect.em{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.4}
+.dgm rect.sg{fill:var(--signal-soft);stroke:var(--signal);stroke-width:1.4}
+.dgm rect.pan{fill:var(--surface-3);stroke:var(--rule-2);stroke-width:1.25;rx:4px}
+.dgm .fl{fill:none;stroke:var(--ink-2);stroke-width:1.3;marker-end:url(#dk-ah)}
+.dgm .alt{stroke:var(--ink-3);stroke-dasharray:4 3}
+.dgm .sig{stroke:var(--signal);stroke-width:1.5;marker-end:url(#dk-ahs)}
+.dgm .mk{fill:var(--ink-2)} .dgm .mks{fill:var(--signal)}
+.dgm text{font-family:var(--sans)}
+.dgm .tt{font-size:12.5px;font-weight:600;fill:var(--ink)}
+.dgm .ts{font-size:11px;fill:var(--ink-3)}
+.dgm .tm{font-family:var(--mono);font-size:10px;font-weight:500;fill:var(--ink-3);letter-spacing:.03em}
+.dgm .tp{font-family:var(--mono);font-size:10px;font-weight:600;fill:var(--accent);letter-spacing:.14em}
+.dgm .tsig{fill:var(--signal)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="bar">
+  <span class="brand">Lean demo build · developer brief</span>
+  <div class="grp">
+    <button id="mode" type="button" aria-pressed="false">Doc view</button>
+  </div>
+  <div class="grp" id="navgrp">
+    <button id="prev" type="button" aria-label="Previous slide">&larr;</button>
+    <span class="count" id="count">1 / 18</span>
+    <button id="next" type="button" aria-label="Next slide">&rarr;</button>
+  </div>
+</div>
+<div class="dots" id="dots"></div>
+
+<svg class="dgm" width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <marker id="dk-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><polygon class="mk" points="0,1 10,5 0,9"/></marker>
+    <marker id="dk-ahs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><polygon class="mks" points="0,1 10,5 0,9"/></marker>
+  </defs></svg>
+<div class="deckwrap">
+
+<!-- 01 ......................................................... -->
+<section class="slide cover active">
+  <p class="eyebrow">Build instruction set · v2 lean · 11 Sep 2026</p>
+  <h1>Appraisal demo — the version we can actually ship</h1>
+  <p class="lede">No integrations. No cascade engine. Four masters, three transactions, three reports, one dependency trick that still does the selling.</p>
+  <dl class="facts">
+    <div><dt>Screens to build</dt><dd>11<small>4 master · 3 transaction · 3 report · 1 login</small></dd></div>
+    <div><dt>Estimate</dt><dd>10–13 days<small>one full-stack developer, sandbox only</small></dd></div>
+    <div><dt>Integrations</dt><dd>Zero<small>ERP deferred to phase 2 by design</small></dd></div>
+    <div><dt>Demo runtime</dt><dd>9 min<small>a fixed nine-click happy path</small></dd></div>
+  </dl>
+  <div class="foot"><b>Read me</b><span>Press <span class="mono">&rarr;</span> / <span class="mono">&larr;</span> to move, or switch to <strong>Doc view</strong> to read the whole brief as one page and print it.</span></div>
+</section>
+
+<!-- 02 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow">The reframe</p>
+  <h2 class="st">What we cut, and why the demo gets stronger</h2>
+  <p class="sub">The v1 spec was a platform. This is a sales instrument. Everything that cannot be shown in nine minutes has been removed — including things that were genuinely good ideas.</p>
+  <div class="body">
+  <div class="cols two">
+    <div class="panel cut">
+      <h3>Cut from the demo</h3>
+      <ul>
+        <li><strong>ERP integration</strong> — the one thing that breaks in a sandbox and cannot be fixed in the room</li>
+        <li><strong>Automatic event matching</strong> — needed timestamps we no longer pull</li>
+        <li><strong>Weight-validated four-level cascade</strong> — replaced by publishing a questionnaire down the org tree</li>
+        <li><strong>Scorecard objects</strong> — a questionnaire <em>is</em> the scorecard</li>
+        <li><strong>Versioning, audit export, escalation SLAs</strong> — real requirements, wrong stage</li>
+      </ul>
+    </div>
+    <div class="panel keep">
+      <h3>Kept, because it is what wins</h3>
+      <ul>
+        <li><strong>Hierarchy publishing</strong> — one questionnaire, many divisions and departments, in one action</li>
+        <li><strong>Three real workflows</strong> — publish, respond, approve with send-back</li>
+        <li><strong>Cross-dependency</strong> — now a parameter on the question master, not an engine</li>
+        <li><strong>1–5 weighted scoring</strong> — the arithmetic every HR head already understands</li>
+        <li><strong>Three levels of report</strong> — individual, department, division</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note">
+    <span class="lead">Say this in the meeting</span>
+    <p>"Phase 1 is manual capture, because that is how your appraisal runs today and it lets us go live in weeks. Phase 2 replaces the manual entry on specific KPIs with data pulled from your ERP — same screens, same scores, the number just arrives by itself."</p>
+    <p>That framing turns the missing integration from a gap into a roadmap, and it is true.</p>
+  </div>
+  </div>
+  <div class="foot"><b>Slide 2</b><span>The removed items go on the phase 2 slide, not in the bin. A visible roadmap is worth more than a bloated demo.</span></div>
+</section>
+
+<!-- 03 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow">Information model</p>
+  <h2 class="st">Master, transaction, report</h2>
+  <p class="sub">Your three-tier model holds up. Masters are set up once by an admin. Transactions are what happens every cycle. Reports read transactions and never store anything of their own.</p>
+  <div class="body">
+  <figure>
+    <div class="dgm-wrap">
+    <svg class="dgm" viewBox="0 0 900 320" role="img" aria-label="Three-tier model: six master tables feed the publish, response and approval transactions, which in turn feed three report views.">
+      <text class="tp" x="20" y="30">1 · MASTER</text>
+      <text class="tp" x="325" y="30">2 · TRANSACTION</text>
+      <text class="tp" x="630" y="30">3 · REPORT</text>
+      <rect class="pan" x="20" y="44" width="250" height="250"/>
+      <rect class="pan" x="325" y="44" width="250" height="250"/>
+      <rect class="pan" x="630" y="44" width="250" height="250"/>
+
+      <rect class="n" x="36" y="62" width="218" height="30"/><text class="tt" x="50" y="82">Division</text>
+      <rect class="n" x="36" y="98" width="218" height="30"/><text class="tt" x="50" y="118">Department</text>
+      <rect class="n" x="36" y="134" width="218" height="30"/><text class="tt" x="50" y="154">Employee</text>
+      <rect class="n" x="36" y="170" width="218" height="30"/><text class="tt" x="50" y="190">Appraisal cycle</text>
+      <rect class="n em" x="36" y="206" width="218" height="30"/><text class="tt" x="50" y="226">Questionnaire</text>
+      <rect class="n sg" x="36" y="242" width="218" height="30"/><text class="tt" x="50" y="262">Question</text>
+      <text class="tm tsig" x="50" y="285">holds the dependency link</text>
+
+      <rect class="n" x="341" y="70" width="218" height="52"/><text class="tt" x="355" y="92">T1 · Publish run</text><text class="ts" x="355" y="109">admin sends questionnaire out</text>
+      <rect class="n" x="341" y="142" width="218" height="52"/><text class="tt" x="355" y="164">T2 · Employee response</text><text class="ts" x="355" y="181">self rating + comment, submit</text>
+      <rect class="n" x="341" y="214" width="218" height="52"/><text class="tt" x="355" y="236">T3 · Approval</text><text class="ts" x="355" y="253">rate, send back, or approve</text>
+
+      <rect class="n" x="646" y="80" width="218" height="44"/><text class="tt" x="660" y="100">R1 · Individual scorecard</text><text class="ts" x="660" y="116">question-wise, final band</text>
+      <rect class="n" x="646" y="152" width="218" height="44"/><text class="tt" x="660" y="172">R2 · Department report</text><text class="ts" x="660" y="188">all employees, average</text>
+      <rect class="n" x="646" y="224" width="218" height="44"/><text class="tt" x="660" y="244">R3 · Division roll-up</text><text class="ts" x="660" y="260">plus dependency flags</text>
+
+      <line class="fl" x1="272" y1="169" x2="319" y2="169"/>
+      <text class="tm" x="295" y="158" text-anchor="middle">publish</text>
+      <line class="fl" x1="577" y1="169" x2="624" y2="169"/>
+      <text class="tm" x="600" y="158" text-anchor="middle">score</text>
+    </svg>
+    </div>
+  </figure>
+  <div class="note">
+    <span class="lead">One field you did not mention, and must not forget</span>
+    <p><strong>Appraisal cycle</strong> belongs in the masters. Every transaction carries <span class="mono">cycle_id</span>. Without it you cannot run June and December separately, cannot compare cycles, and cannot re-publish next period without wiping the last one. It is one column now and a rebuild later.</p>
+  </div>
+  </div>
+  <div class="foot"><b>Slide 3</b><span>Reports are views, not tables. If the developer creates a "score master", the model is already wrong.</span></div>
+</section>
+
+<!-- 04 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow">Scope</p>
+  <h2 class="st">Eleven screens. Nothing else gets built.</h2>
+  <p class="sub">If a screen is not on this list, it is not in the demo. Print this slide and hold the developer to it.</p>
+  <div class="body">
+  <div class="grid">
+    <div class="tile"><span class="n">S0 · AUTH</span><b>Login</b><span>Three seeded users. No registration, no password reset, no email.</span></div>
+    <div class="tile"><span class="n">S1 · MASTER</span><b>Division &amp; Department</b><span>One screen, two tabs. List, add, edit. Ten minutes of work.</span></div>
+    <div class="tile"><span class="n">S2 · MASTER</span><b>Employee</b><span>List, add, edit. Carries division, department, manager, role.</span></div>
+    <div class="tile"><span class="n">S3 · MASTER</span><b>Appraisal cycle</b><span>Code, dates, status. Four rows of seed data, rarely touched in the demo.</span></div>
+    <div class="tile"><span class="n">S4 · MASTER</span><b>Questionnaire builder</b><span>Header plus a question grid. The dependency fields live here. Most important master screen.</span></div>
+    <div class="tile"><span class="n">S5 · TXN</span><b>Publish run</b><span>Pick cycle, questionnaire, target divisions and departments. Preview the employee list. Publish.</span></div>
+    <div class="tile"><span class="n">S6 · TXN</span><b>My appraisal</b><span>Employee fills self rating and comment per question. Save draft, submit.</span></div>
+    <div class="tile"><span class="n">S7 · TXN</span><b>Approval inbox</b><span>Manager's pending list, then the review screen. Dependency alert appears here.</span></div>
+    <div class="tile"><span class="n">R1 · REPORT</span><b>Individual scorecard</b><span>Question-wise self vs manager, weighted total, final band.</span></div>
+    <div class="tile"><span class="n">R2 · REPORT</span><b>Department report</b><span>Employee list with final scores, average, band distribution.</span></div>
+    <div class="tile"><span class="n">R3 · REPORT</span><b>Division roll-up</b><span>Department averages, completion status, dependency flag list.</span></div>
+  </div>
+  <div class="note sg">
+    <span class="lead">Rule for the developer</span>
+    <p>No half-built screens. Every button either works or is visibly greyed with a <span class="mono">Phase 2</span> tag on hover. A button that does nothing when clicked in front of a client costs more than a feature that was never there.</p>
+  </div>
+  </div>
+  <div class="foot"><b>Slide 4</b><span>Eleven screens, three of which are simple CRUD lists. This is a two-week build, not a two-month one.</span></div>
+</section>
+
+<!-- 05 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow">Master · S1 &amp; S2</p>
+  <h2 class="st">Organisation masters</h2>
+  <p class="sub">Plain CRUD. Build these first — everything downstream needs them, and they are the cheapest way to get a running app on day one.</p>
+  <div class="body">
+  <div class="cols two">
+    <div>
+      <div class="panel"><h3>Division &amp; Department</h3></div>
+      <div class="tw"><table>
+        <thead><tr><th>Field</th><th>Type</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="f">division_id</td><td>auto</td><td>PK</td></tr>
+          <tr><td class="f">code</td><td>text(10)</td><td><span class="req">unique</span> e.g. CON, TRD</td></tr>
+          <tr><td class="f">name</td><td>text(80)</td><td><span class="req">required</span></td></tr>
+          <tr><td class="f">head_emp_id</td><td>fk employee</td><td><span class="req opt">optional</span></td></tr>
+          <tr><td class="f">is_active</td><td>bool</td><td>default true</td></tr>
+          <tr><td class="f">dept_id</td><td>auto</td><td>PK — department table</td></tr>
+          <tr><td class="f">division_id</td><td>fk division</td><td><span class="req">required</span></td></tr>
+          <tr><td class="f">code · name</td><td>text</td><td>unique within division</td></tr>
+          <tr><td class="f">head_emp_id</td><td>fk employee</td><td>used as default approver</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="panel"><h3>Employee</h3></div>
+      <div class="tw"><table>
+        <thead><tr><th>Field</th><th>Type</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="f">emp_id</td><td>auto</td><td>PK</td></tr>
+          <tr><td class="f">emp_code</td><td>text(15)</td><td><span class="req">unique</span></td></tr>
+          <tr><td class="f">full_name</td><td>text(100)</td><td><span class="req">required</span></td></tr>
+          <tr><td class="f">email</td><td>text</td><td>login id</td></tr>
+          <tr><td class="f">designation</td><td>text(60)</td><td><span class="req">required</span> — drives publishing</td></tr>
+          <tr><td class="f">division_id</td><td>fk</td><td><span class="req">required</span></td></tr>
+          <tr><td class="f">dept_id</td><td>fk</td><td><span class="req">required</span></td></tr>
+          <tr><td class="f">manager_emp_id</td><td>fk employee</td><td><span class="req">required</span> — the approver</td></tr>
+          <tr><td class="f">role</td><td>enum</td><td>EMPLOYEE / MANAGER / ADMIN</td></tr>
+          <tr><td class="f">is_active</td><td>bool</td><td>inactive are never published to</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="note">
+    <span class="lead">Two fields that do real work</span>
+    <p><span class="mono">designation</span> is how a questionnaire finds the right people — "publish the Finance questionnaire to every Accountant in Trading" is a filter, not a manual selection of 40 names. <span class="mono">manager_emp_id</span> is how an appraisal finds its approver. Get both into the seed data properly or the publish screen has nothing to work with.</p>
+  </div>
+  </div>
+  <div class="foot"><b>Slide 5</b><span>Skip soft-delete, address fields, grades, salary. Nothing on this demo path needs them.</span></div>
+</section>
+
+<!-- 06 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow">Master · S3 &amp; S4 header</p>
+  <h2 class="st">Cycle and questionnaire</h2>
+  <p class="sub">A questionnaire is the reusable template. A cycle is the period it runs in. Keeping them separate is what lets the same questionnaire run in June and December without being copied.</p>
+  <div class="body">
+  <div class="cols two">
+    <div>
+      <div class="panel"><h3>Appraisal cycle</h3></div>
+      <div class="tw"><table>
+        <thead><tr><th>Field</th><th>Type</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="f">cycle_id</td><td>auto</td><td>PK</td></tr>
+          <tr><td class="f">code</td><td>text(15)</td><td><span class="req">unique</span> H1-2026</td></tr>
+          <tr><td class="f">name</td><td>text(60)</td><td>Jan–Jun 2026 Review</td></tr>
+          <tr><td class="f">start_date · end_date</td><td>date</td><td><span class="req">required</span></td></tr>
+          <tr><td class="f">status</td><td>enum</td><td>OPEN / IN REVIEW / CLOSED</td></tr>
+        </tbody>
+      </table></div>
+      <p style="font-size:13px;color:var(--ink-3);margin-top:-4px">Only one cycle is <span class="mono">OPEN</span> at a time. Publishing is blocked on a <span class="mono">CLOSED</span> cycle — one validation, and it makes the system feel governed.</p>
+    </div>
+    <div>
+      <div class="panel keep"><h3>Questionnaire header</h3></div>
+      <div class="tw"><table>
+        <thead><tr><th>Field</th><th>Type</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="f">qnr_id</td><td>auto</td><td>PK</td></tr>
+          <tr><td class="f">code · title</td><td>text</td><td><span class="req">required</span> e.g. QNR-PAY "Payroll Team"</td></tr>
+          <tr><td class="f">applies_to_level</td><td>enum</td><td>DIVISION / DEPARTMENT / DESIGNATION</td></tr>
+          <tr><td class="f">scale_max</td><td>int</td><td>default 5 — keeps it configurable without work</td></tr>
+          <tr><td class="f">version</td><td>int</td><td>default 1, display only in phase 1</td></tr>
+          <tr><td class="f">status</td><td>enum</td><td>DRAFT / ACTIVE / ARCHIVED</td></tr>
+          <tr><td class="f">total_weight</td><td>computed</td><td>sum of question weights, shown live</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="note sg">
+    <span class="lead">The one validation worth building</span>
+    <p>A questionnaire cannot be set <span class="mono">ACTIVE</span> until its question weights total exactly 100. Show a live counter in the builder — <strong>"Weight allocated: 85 / 100"</strong> in red until it balances. It costs an hour, and in the demo it is the moment the client realises the system is doing the thinking. Let them watch you try to save at 85 and be refused.</p>
+  </div>
+  </div>
+  <div class="foot"><b>Slide 6</b><span>Version is a display-only field in phase 1. Put the column in now; editing questionnaires mid-cycle is a phase 2 conversation.</span></div>
+</section>
+
+<!-- 07 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow">Master · S4 question grid</p>
+  <h2 class="st">The question master carries the dependency</h2>
+  <p class="sub">This is the table that makes the demo different from every competitor. The admin declares, on the consumer's question, which provider's question it depends on.</p>
+  <div class="body">
+  <div class="tw"><table>
+    <thead><tr><th>Field</th><th>Type</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td class="f">qn_id · qnr_id · seq</td><td>auto / fk / int</td><td>display order</td></tr>
+      <tr><td class="f">kpi_code</td><td>text(15)</td><td><span class="req">required</span> KPI-PR-01 — the handle the dependency points at</td></tr>
+      <tr><td class="f">question_text</td><td>text(250)</td><td><span class="req">required</span> "Payroll disbursed by Day 5 every month"</td></tr>
+      <tr><td class="f">response_type</td><td>enum</td><td>RATING_1_5 (default) / NUMBER / YES_NO</td></tr>
+      <tr><td class="f">target_text</td><td>text(60)</td><td>free text shown to the employee: "6 of 6 months"</td></tr>
+      <tr><td class="f">weight_pct</td><td>int</td><td><span class="req">required</span> must total 100 across the questionnaire</td></tr>
+      <tr><td class="f">evidence_required</td><td>bool</td><td>forces a comment before submit</td></tr>
+      <tr class="hl"><td class="f">is_dependent</td><td>bool</td><td><strong>dependency block starts here</strong> — fields below appear only when ticked</td></tr>
+      <tr class="hl"><td class="f">provider_qnr_id</td><td>fk questionnaire</td><td>which questionnaire the provider answers</td></tr>
+      <tr class="hl"><td class="f">provider_qn_id</td><td>fk question</td><td>which question of theirs we depend on</td></tr>
+      <tr class="hl"><td class="f">provider_designation</td><td>text(60)</td><td>who holds it — "HR Executive". Resolves to a person at publish time</td></tr>
+      <tr class="hl"><td class="f">dependency_type</td><td>enum</td><td>BLOCKING / DEGRADING — display only in phase 1</td></tr>
+      <tr class="hl"><td class="f">impact_share_pct</td><td>int</td><td>default 80 — the share of the shortfall not the consumer's fault</td></tr>
+      <tr class="hl"><td class="f">dependency_note</td><td>text(200)</td><td>shown to the approver as plain English</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note">
+    <span class="lead">UI note</span>
+    <p>Keep the dependency fields collapsed behind the <span class="mono">is_dependent</span> checkbox. Nine of ten questions will never use them, and a grid with fourteen visible columns looks like an ERP screen from 2009.</p>
+  </div>
+  </div>
+  <div class="foot"><b>Slide 7</b><span>Cross-dependency as a master parameter — exactly as you specified — and it costs one checkbox plus six fields.</span></div>
+</section>
+
+<!-- 08 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow sg">The differentiator</p>
+  <h2 class="st">Dependency without a single integration</h2>
+  <p class="sub">We lost the ERP timestamps, so we can no longer prove a delay automatically. We do not need to — the provider's own appraisal score is the evidence, and it is already in the system.</p>
+  <div class="body">
+  <figure>
+    <div class="dgm-wrap">
+    <svg class="dgm" viewBox="0 0 880 250" role="img" aria-label="The provider's question score and the consumer's question score both feed the approval screen, where an alert lets the approver apply relief.">
+      <rect class="n" x="30" y="30" width="250" height="70"/>
+      <text class="tt" x="46" y="52">Provider question</text>
+      <text class="ts" x="46" y="70">KPI-HR-01 · HR Executive</text>
+      <text class="ts" x="46" y="87">manager rating: 1</text>
+
+      <rect class="n" x="600" y="30" width="250" height="70"/>
+      <text class="tt" x="616" y="52">Consumer question</text>
+      <text class="ts" x="616" y="70">KPI-PR-01 · Payroll Manager</text>
+      <text class="ts" x="616" y="87">raw rating: 1</text>
+
+      <line class="fl sig" x1="282" y1="65" x2="592" y2="65"/>
+      <text class="tm tsig" x="439" y="53" text-anchor="middle">declared once at Question Master · α = 80%</text>
+
+      <rect class="n sg" x="300" y="155" width="280" height="64"/>
+      <text class="tt" x="440" y="180" text-anchor="middle">Approval screen: dependency alert</text>
+      <text class="ts" x="440" y="199" text-anchor="middle">approver clicks Apply relief → rating 3</text>
+
+      <path class="fl" d="M150,100 V187 H296"/>
+      <text class="tm" x="160" y="142">the score is the evidence</text>
+      <path class="fl" d="M725,100 V187 H584"/>
+      <text class="tm" x="715" y="142" text-anchor="end">shortfall to explain</text>
+    </svg>
+    </div>
+  </figure>
+  <div class="formula">
+adjusted = raw + ROUND( <i>impact_share_pct</i> ÷ 100 × ( 3 − raw ) ) &nbsp;&nbsp;<i>capped at +2 bands, never above scale_max</i><br>
+<b>1 + ROUND( 0.80 × ( 3 − 1 ) ) = 1 + 2 = 3</b> &nbsp;&nbsp;<i>Payroll Manager restored from "Below" to "Meets"</i>
+  </div>
+  <div class="note sg">
+    <span class="lead">Trigger condition — build exactly this</span>
+    <p>Show the alert when <strong>the consumer's rating is below 3</strong> AND <strong>the provider's rating on the linked question is below 3</strong>, in the same cycle. Nothing adjusts automatically: the approver clicks <span class="mono">Apply relief</span>, types a reason, and the adjusted rating is stored alongside the raw one. The provider's scorecard gets a <strong>"1 downstream impact"</strong> flag. Never deduct from the provider — they already scored 1 on their own question.</p>
+  </div>
+  </div>
+  <div class="foot sg"><b>Slide 8</b><span>This is the three minutes of the demo that sells the deal. Everything else on this deck exists to get you to this screen.</span></div>
+</section>
+
+<!-- 09 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow">Transaction 1 · S5</p>
+  <h2 class="st">Publish run</h2>
+  <p class="sub">One admin action that creates many appraisals. This is where "publish across divisions and departments" actually happens, and it must feel like one click.</p>
+  <div class="body">
+  <div class="cols two">
+    <div>
+      <div class="panel"><h3>Screen behaviour</h3></div>
+      <ol class="steps">
+        <li><b>Select cycle</b><span>Dropdown, OPEN cycles only.</span></li>
+        <li><b>Select questionnaire</b><span>ACTIVE only, weights balanced at 100.</span></li>
+        <li><b>Choose targets</b><span>Multi-select divisions, then multi-select departments, then optionally designations. All three are filters, not mandatory.</span></li>
+        <li><b>Preview</b><span>Grid of matched employees with their manager. Admin can untick individuals. Show the count prominently: <strong>"14 employees matched"</strong>.</span></li>
+        <li><b>Publish</b><span>Creates one appraisal row per ticked employee at status PENDING EMPLOYEE. Confirmation shows the count created and skipped.</span></li>
+      </ol>
+    </div>
+    <div>
+      <div class="panel"><h3>Tables written</h3></div>
+      <div class="tw"><table>
+        <thead><tr><th>Table</th><th>Key fields</th></tr></thead>
+        <tbody>
+          <tr><td class="f">publish_run</td><td>run_id, cycle_id, qnr_id, published_by, published_on, filter_json, status, count_created</td></tr>
+          <tr><td class="f">appraisal</td><td>appraisal_id, run_id, cycle_id, emp_id, qnr_id, approver_emp_id, status, self_total, manager_total, final_score, final_band, submitted_on, approved_on</td></tr>
+          <tr><td class="f">appraisal_answer</td><td>answer_id, appraisal_id, qn_id, self_rating, self_comment, manager_rating, manager_comment, adjusted_rating, adjustment_reason, weight_pct</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note">
+        <span class="lead">Snapshot, do not join</span>
+        <p>Copy <span class="mono">weight_pct</span> and the question text onto <span class="mono">appraisal_answer</span> at publish time. If the admin later edits the questionnaire, published appraisals must not silently change. One extra column, one whole class of bug avoided.</p>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div class="foot"><b>Slide 9</b><span>Answer rows are created empty at publish. The employee screen then has nothing to create — only update.</span></div>
+</section>
+
+<!-- 10 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow">Transaction 2 · S6</p>
+  <h2 class="st">My appraisal — employee entry</h2>
+  <p class="sub">The screen the client's 400 employees will actually use. It should look like a form someone can finish in six minutes, not a system.</p>
+  <div class="body">
+  <div class="cols two">
+    <div>
+      <div class="panel"><h3>Layout</h3></div>
+      <ul>
+        <li>Header strip: employee name, cycle, questionnaire, status pill, weight-complete indicator</li>
+        <li>One row per question: <strong>text · target · weight · rating selector 1–5 · comment box</strong></li>
+        <li>Rating selector as five clickable buttons, not a dropdown — it reads as a product</li>
+        <li>Running <strong>self score</strong> in a sticky footer, recalculating as they click</li>
+        <li>Two actions: <span class="mono">Save draft</span> and <span class="mono">Submit for approval</span></li>
+      </ul>
+      <div class="panel sg" style="margin-top:16px"><h3>Dependency claim</h3></div>
+      <ul>
+        <li>On a question where <span class="mono">is_dependent</span> is true, show a small link: <em>"This KPI depends on HR Executive — raise a dependency note"</em></li>
+        <li>Opens a single text box. Stored on the answer row. Appears to the approver.</li>
+      </ul>
+    </div>
+    <div>
+      <div class="panel"><h3>Validation on submit</h3></div>
+      <div class="tw"><table>
+        <thead><tr><th>Rule</th><th>Message</th></tr></thead>
+        <tbody>
+          <tr><td>All questions rated</td><td>"3 questions still unanswered"</td></tr>
+          <tr><td>Comment where <span class="mono">evidence_required</span></td><td>"A comment is required on Q4"</td></tr>
+          <tr><td>Status must be PENDING EMPLOYEE or SENT BACK</td><td>screen is read-only otherwise</td></tr>
+          <tr><td>Cycle must be OPEN</td><td>"This cycle is closed"</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note">
+        <span class="lead">On submit</span>
+        <p>Set <span class="mono">status = SUBMITTED</span>, stamp <span class="mono">submitted_on</span>, compute and store <span class="mono">self_total</span>, and write a row to <span class="mono">approval_log</span>. The appraisal now appears in the manager's inbox. Screen becomes read-only.</p>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div class="foot"><b>Slide 10</b><span>Do not build file upload. A comment box is enough evidence for phase 1 and saves two days.</span></div>
+</section>
+
+<!-- 11 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow">Transaction 3 · S7</p>
+  <h2 class="st">Approval — where the demo peaks</h2>
+  <p class="sub">Same grid as the employee screen, plus a manager rating column, plus the dependency alert. Build this screen last and best.</p>
+  <div class="body">
+  <div class="tw"><table>
+    <thead><tr><th>Element</th><th>Behaviour</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Inbox list</strong></td><td>All appraisals where <span class="mono">approver_emp_id</span> = logged-in user and status = SUBMITTED. Columns: employee, department, questionnaire, self score, submitted on, a red dot if any dependency alert fires.</td></tr>
+      <tr><td><strong>Review grid</strong></td><td>Question · target · weight · <em>self rating (read-only)</em> · self comment · <strong>manager rating 1–5</strong> · manager comment. Manager rating defaults to the self rating so the manager only changes what they disagree with.</td></tr>
+      <tr class="hl"><td><strong>Dependency alert</strong></td><td>An inline banner on the affected question: <em>"KPI-PR-01 depends on KPI-HR-01 held by Fatima A. (HR Executive), who scored <span class="band b1">1</span> this cycle. Employee note: 'attendance data was late in Feb and May.'"</em> with one button: <span class="mono">Apply relief → 3</span>.</td></tr>
+      <tr><td><strong>Apply relief</strong></td><td>Opens a reason box (mandatory, 20 characters). Writes <span class="mono">adjusted_rating</span> and <span class="mono">adjustment_reason</span>. Shows the raw rating struck through beside the new one — visible, never hidden.</td></tr>
+      <tr><td><strong>Send back</strong></td><td>Mandatory reason. Status → SENT BACK. Employee's screen reopens with the manager's reason at the top.</td></tr>
+      <tr><td><strong>Approve</strong></td><td>Computes <span class="mono">manager_total</span> and <span class="mono">final_score</span> from adjusted ratings where present, sets <span class="mono">final_band</span>, status → APPROVED, stamps <span class="mono">approved_on</span>. The scorecard report goes live.</td></tr>
+      <tr><td><strong>Approval log</strong></td><td>Every action appended: log_id, appraisal_id, action, by_emp_id, from_status, to_status, remark, timestamp. Render it as a simple timeline at the bottom of the review screen — it takes an hour and makes the system look mature.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note sg">
+    <span class="lead">Do not skip this</span>
+    <p>The manager rating defaulting to the self rating is a two-line change that transforms how the screen feels. Without it the manager faces 8 empty dropdowns and the demo drags. With it, you change one number, apply relief on another, and approve — eleven seconds.</p>
+  </div>
+  </div>
+  <div class="foot sg"><b>Slide 11</b><span>One approval level only. Manager approves, done. Two-level approval is a phase 2 line item.</span></div>
+</section>
+
+<!-- 12 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow">Workflow</p>
+  <h2 class="st">Five statuses, one loop</h2>
+  <p class="sub">The whole workflow. If a developer proposes a sixth status, ask which of the nine demo clicks needs it.</p>
+  <div class="body">
+  <figure>
+    <div class="dgm-wrap">
+    <svg class="dgm" viewBox="0 0 880 160" role="img" aria-label="Appraisal status flow: draft to pending employee to submitted to approved to closed, with a send-back loop from submitted back to pending employee.">
+      <rect class="n" x="25" y="40" width="150" height="44"/><text class="tt" x="100" y="67" text-anchor="middle">DRAFT</text>
+      <rect class="n" x="195" y="40" width="150" height="44"/><text class="tt" x="270" y="60" text-anchor="middle">PENDING</text><text class="tt" x="270" y="75" text-anchor="middle">EMPLOYEE</text>
+      <rect class="n" x="365" y="40" width="150" height="44"/><text class="tt" x="440" y="67" text-anchor="middle">SUBMITTED</text>
+      <rect class="n em" x="535" y="40" width="150" height="44"/><text class="tt" x="610" y="67" text-anchor="middle">APPROVED</text>
+      <rect class="n" x="705" y="40" width="150" height="44"/><text class="tt" x="780" y="67" text-anchor="middle">CLOSED</text>
+      <line class="fl" x1="175" y1="62" x2="191" y2="62"/>
+      <line class="fl" x1="345" y1="62" x2="361" y2="62"/>
+      <line class="fl" x1="515" y1="62" x2="531" y2="62"/>
+      <line class="fl" x1="685" y1="62" x2="701" y2="62"/>
+      <text class="tm" x="183" y="30" text-anchor="middle">publish</text>
+      <text class="tm" x="353" y="30" text-anchor="middle">submit</text>
+      <text class="tm" x="523" y="30" text-anchor="middle">approve</text>
+      <text class="tm" x="693" y="30" text-anchor="middle">close cycle</text>
+      <path class="fl alt" d="M440,84 V116 H270 V88"/>
+      <text class="tm" x="355" y="133" text-anchor="middle">send back · reason required</text>
+    </svg>
+    </div>
+  </figure>
+  <div class="cols two">
+    <div class="panel"><h3>Who can do what</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Role</th><th>Can</th></tr></thead>
+        <tbody>
+          <tr><td><strong>ADMIN</strong></td><td>All masters, publish runs, all reports</td></tr>
+          <tr><td><strong>MANAGER</strong></td><td>Own appraisal, approval inbox for direct reports, R1 and R2 for own department</td></tr>
+          <tr><td><strong>EMPLOYEE</strong></td><td>Own appraisal and own scorecard only</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="panel"><h3>Kept deliberately simple</h3>
+      <ul>
+        <li>DRAFT exists only for a few milliseconds during publish — keep it so the state model reads correctly, but nothing sits in it</li>
+        <li>No employee acknowledgment of the final score in phase 1. It is one more status and one more screen; mention it as phase 2 and the client will nod</li>
+        <li>CLOSED is set by closing the cycle, not per appraisal</li>
+      </ul>
+    </div>
+  </div>
+  </div>
+  <div class="foot"><b>Slide 12</b><span>Every transition writes an approval_log row. That log is the answer to "can we prove what happened?"</span></div>
+</section>
+
+<!-- 13 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow">Calculation</p>
+  <h2 class="st">Scoring — all of the arithmetic</h2>
+  <p class="sub">Three formulas and one lookup table. Hard-code the band boundaries; making them configurable is a phase 2 checkbox.</p>
+  <div class="body">
+  <div class="formula">
+<i>per question</i> &nbsp;effective = adjusted_rating ?? manager_rating<br>
+<i>appraisal</i> &nbsp;&nbsp;&nbsp;&nbsp;final_score = Σ ( effective × weight_pct ) ÷ 100 &nbsp;&nbsp;<i>→ 1.00 to 5.00, two decimals</i><br>
+<i>self score</i> &nbsp;&nbsp;&nbsp;self_total = Σ ( self_rating × weight_pct ) ÷ 100 &nbsp;&nbsp;<i>shown beside it, never used for the final</i><br>
+<i>department</i> &nbsp;&nbsp;average of final_score across APPROVED appraisals &nbsp;<i>plain mean, no weighting</i>
+  </div>
+  <div class="cols two">
+    <div>
+      <div class="tw"><table>
+        <thead><tr><th class="num">Band</th><th>Label</th><th class="num">Final score</th></tr></thead>
+        <tbody>
+          <tr><td class="num"><span class="band b5">5</span></td><td>Exceptional</td><td class="num">4.50 – 5.00</td></tr>
+          <tr><td class="num"><span class="band b4">4</span></td><td>Exceeds</td><td class="num">3.50 – 4.49</td></tr>
+          <tr><td class="num"><span class="band b3">3</span></td><td>Meets</td><td class="num">2.50 – 3.49</td></tr>
+          <tr><td class="num"><span class="band b2">2</span></td><td>Partially meets</td><td class="num">1.50 – 2.49</td></tr>
+          <tr><td class="num"><span class="band b1">1</span></td><td>Below expectation</td><td class="num">1.00 – 1.49</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="note sg">
+        <span class="lead">The number that closes the meeting</span>
+        <p>Seed the demo Payroll Manager so that <strong>without relief he scores 2.95 — "Meets"</strong>, and <strong>with relief 3.65 — "Exceeds"</strong>. Show the raw total first, pause, then apply relief and let them watch the band change on screen.</p>
+        <p>Build a small <span class="mono">Recalculate</span> button on the review screen so the total visibly updates. Silent recalculation on save loses the moment.</p>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div class="foot"><b>Slide 13</b><span>Store final_score and final_band on the appraisal row at approval. Reports read stored values — never recompute at render time.</span></div>
+</section>
+
+<!-- 14 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow">Reports · R1 R2 R3</p>
+  <h2 class="st">Three reports, no report builder</h2>
+  <p class="sub">Fixed layouts with a cycle filter. Resist every temptation to build something generic — the client is buying the answer, not the tool that makes it.</p>
+  <div class="body">
+  <div class="tw"><table>
+    <thead><tr><th>Report</th><th>Filter</th><th>Columns / content</th></tr></thead>
+    <tbody>
+      <tr><td class="f">R1<br>Individual<br>scorecard</td><td>cycle, employee</td><td>Header: name, designation, department, cycle, final score, final band pill.<br>Grid: question · weight · self rating · manager rating · adjusted · weighted contribution · comment. Adjusted rows highlighted with the reason on hover. Approval timeline at the bottom.</td></tr>
+      <tr><td class="f">R2<br>Department<br>report</td><td>cycle, division, department</td><td>One row per employee: name, designation, self score, final score, band, status, approver, approved on.<br>Summary strip: department average, completion (9 of 14 approved), band distribution as five counts.</td></tr>
+      <tr class="hl"><td class="f">R3<br>Division<br>roll-up</td><td>cycle, division</td><td>One row per department: headcount, published, approved, average score, band spread.<br>Below it: <strong>Dependency flag list</strong> — every relief applied this cycle, showing provider, consumer, question, raw → adjusted, approver, reason. This is the table the HOD will ask to keep.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="cols two">
+    <div class="panel"><h3>Build cheap</h3>
+      <ul>
+        <li>One bar chart maximum, on R2 — band distribution. No pies, no gauges, no trend lines</li>
+        <li>Export to CSV on R2 and R3. Two hours, and it answers "can we get this into Excel?" before it is asked</li>
+        <li>No print stylesheet. Screen only</li>
+      </ul>
+    </div>
+    <div class="panel sg"><h3>Why R3 matters to the sale</h3>
+      <ul>
+        <li>R1 and R2 are what every competitor shows</li>
+        <li>The dependency flag list on R3 exists in no product they have seen this month</li>
+        <li>It reframes appraisal from "rating people" to "finding where the organisation leaks" — which is what the HOD actually cares about</li>
+      </ul>
+    </div>
+  </div>
+  </div>
+  <div class="foot"><b>Slide 14</b><span>R3 is the last thing you show and the first thing they remember. Give it five extra hours of polish.</span></div>
+</section>
+
+<!-- 15 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow sg">Seed data</p>
+  <h2 class="st">Making it look alive, without getting caught</h2>
+  <p class="sub">Every demo environment in enterprise software is seeded. That is normal and defensible. What is not defensible is a screen that breaks when someone clicks somewhere you did not plan for.</p>
+  <div class="body">
+  <div class="note sg">
+    <span class="lead">The rule — give this to your developer verbatim</span>
+    <p><strong>Everything on the nine-click path is real code against a real database. Everything off it is seed data that renders correctly and is read-only.</strong></p>
+    <p>Seeded history is a demo environment. A fake screenshot behind a button is a liability. The difference is that seeded data survives an unscripted click and a faked screen does not — and clients always click somewhere you did not plan.</p>
+  </div>
+  <div class="cols two">
+    <div>
+      <div class="panel"><h3>Seed this</h3></div>
+      <div class="tw"><table>
+        <thead><tr><th>Object</th><th>Volume</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>Divisions</td><td class="num">2</td><td>Contracting, Trading — proves multi-entity</td></tr>
+          <tr><td>Departments</td><td class="num">6</td><td>HR &amp; Payroll, Projects, Procurement, Finance, Sales, QHSE</td></tr>
+          <tr><td>Employees</td><td class="num">24</td><td>Real Gulf names, real designations. Empty lists look like an unfinished product</td></tr>
+          <tr><td>Cycles</td><td class="num">2</td><td>H2-2025 <span class="mono">CLOSED</span> and fully scored · H1-2026 <span class="mono">OPEN</span></td></tr>
+          <tr><td>Questionnaires</td><td class="num">4</td><td>6–8 questions each, weights balanced to 100</td></tr>
+          <tr><td>Dependency links</td><td class="num">2</td><td>One you demo, one visible elsewhere so it looks like a feature not a trick</td></tr>
+          <tr><td>H2-2025 appraisals</td><td class="num">24</td><td>All APPROVED with varied scores — this is what fills the reports</td></tr>
+          <tr><td>H1-2026 appraisals</td><td class="num">14</td><td>See the state map opposite</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="panel sg"><h3>H1-2026 state map — get this exactly right</h3></div>
+      <div class="tw"><table>
+        <thead><tr><th>Count</th><th>Status</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td class="num">8</td><td>APPROVED</td><td>Reports have content the moment you open them</td></tr>
+          <tr><td class="num">2</td><td>SENT BACK</td><td>Proves the loop exists without you having to demo it</td></tr>
+          <tr class="hl"><td class="num">1</td><td>SUBMITTED</td><td><strong>Rajesh, Payroll Manager</strong> — the one you approve live, with the dependency alert armed</td></tr>
+          <tr class="hl"><td class="num">1</td><td>PENDING EMPLOYEE</td><td><strong>Your employee login</strong> — the one you fill in live</td></tr>
+          <tr><td class="num">2</td><td>PENDING EMPLOYEE</td><td>Background, untouched</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note">
+        <span class="lead">Logins to seed</span>
+        <p><span class="mono">admin@demo.co / demo123</span> — Admin<br><span class="mono">manager@demo.co / demo123</span> — Rajesh's approver<br><span class="mono">staff@demo.co / demo123</span> — the employee you fill in</p>
+        <p>Add a one-click <strong>Reset demo data</strong> button on the admin screen. After a rehearsal or a failed run you restore the exact starting state in two seconds. This single button has saved more demos than any feature on this deck.</p>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div class="foot sg"><b>Slide 15</b><span>Rehearse twice with a reset in between. The second run is the one where you find the click that breaks it.</span></div>
+</section>
+
+<!-- 16 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow">Demo script</p>
+  <h2 class="st">The nine clicks</h2>
+  <p class="sub">Nine minutes. Build the product so this exact sequence is impossible to get wrong, then never deviate from it in front of a client.</p>
+  <div class="body">
+  <ol class="steps">
+    <li><b>Admin → Questionnaire builder — 60s</b><span>Open the Payroll questionnaire. Change a weight so the counter reads 95 / 100. Try to save. Let it refuse you. Fix it. <em>You have now established that the system enforces rules.</em></span></li>
+    <li><b>Scroll to the dependent question — 45s</b><span>Tick open the dependency block on KPI-PR-01. Show provider question, provider designation, impact share 80%. Say: "this is set once, by HR, and it applies to everyone who ever holds this role."</span></li>
+    <li><b>Admin → Publish run — 60s</b><span>Cycle H1-2026, Payroll questionnaire, Contracting division, HR &amp; Payroll department. Preview shows the matched employees. Publish. <em>"That is your whole cascade — one action, every person."</em></span></li>
+    <li><b>Log in as employee — 90s</b><span>Open My Appraisal. Rate four questions by clicking. Watch the self score build in the footer. Add a dependency note on the linked question. Submit.</span></li>
+    <li><b>Log in as manager — 30s</b><span>Open the approval inbox. The submitted appraisal is there with a red dependency dot. Open Rajesh instead — the seeded one.</span></li>
+    <li><b>Review the scorecard — 60s</b><span>Walk the grid. Manager ratings pre-filled from self ratings. Change one. Show the running total: <strong>2.95 — Meets expectations</strong>. Stop. Ask: "is that the right answer for a man whose supplier was late twice?"</span></li>
+    <li><b>Apply relief — 90s</b><span>The dependency banner names the provider, their score, and the employee's note. Click Apply relief. Type the reason. Watch the rating move 1 → 3 with the raw score struck through, and the total move to <strong>3.65 — Exceeds</strong>. This is the moment.</span></li>
+    <li><b>Approve, then open R1 — 45s</b><span>The scorecard renders with the adjustment visible and the approval timeline underneath. "Nothing is hidden. Every change has a name and a reason on it."</span></li>
+    <li><b>Finish on R3 — 90s</b><span>Division roll-up, department averages, then scroll to the dependency flag list. "This is the report your HOD will ask for every cycle. It shows you where the organisation is actually leaking." Stop talking.</span></li>
+  </ol>
+  </div>
+  <div class="foot"><b>Slide 16</b><span>Do not show the employee master, the login screen, or anything you built but do not need. Breadth is the enemy here.</span></div>
+</section>
+
+<!-- 17 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow">Delivery</p>
+  <h2 class="st">Build order and estimate</h2>
+  <p class="sub">Sequenced so that there is something demonstrable from day three, and so the highest-risk screen is built while there is still time to fix it.</p>
+  <div class="body">
+  <div class="tw"><table>
+    <thead><tr><th class="num">#</th><th>Module</th><th class="num">Days</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>Project skeleton, login, role routing</td><td class="num">1.0</td><td>Three hard-coded roles. No password reset, no email</td></tr>
+      <tr><td class="num">2</td><td>Masters — division, department, employee, cycle</td><td class="num">2.0</td><td>Straight CRUD. Generate as much as the framework allows</td></tr>
+      <tr><td class="num">3</td><td>Questionnaire builder incl. dependency fields</td><td class="num">2.0</td><td>The weight counter and the collapsible dependency block are the only real work</td></tr>
+      <tr><td class="num">4</td><td>Publish run + appraisal generation</td><td class="num">1.5</td><td>Filter, preview, bulk insert with snapshotted weights</td></tr>
+      <tr><td class="num">5</td><td>Employee response screen</td><td class="num">1.5</td><td>Rating buttons, running total, validation, submit</td></tr>
+      <tr><td class="num">6</td><td>Approval inbox + review + dependency relief</td><td class="num">2.5</td><td><strong>Highest value, highest risk. Do not compress this one</strong></td></tr>
+      <tr><td class="num">7</td><td>Reports R1, R2, R3</td><td class="num">2.0</td><td>R3's flag list is the one that needs care</td></tr>
+      <tr><td class="num">8</td><td>Seed script + reset button</td><td class="num">0.5</td><td>Write it as a script from day one, not by hand at the end</td></tr>
+      <tr class="total"><td class="num"></td><td>Total — one full-stack developer</td><td class="num">13.0</td><td>10 if the team has a CRUD scaffold it reuses</td></tr>
+    </tbody>
+  </table></div>
+  <div class="cols two">
+    <div class="panel"><h3>Stack</h3>
+      <ul>
+        <li><strong>Whatever your team ships fastest in.</strong> This spec is stack-agnostic on purpose — the field lists and state model are the deliverable</li>
+        <li>One relational database. Eight tables. SQLite is genuinely enough for a sandbox demo</li>
+        <li>Server-rendered is fine. Do not start a new SPA framework for this</li>
+        <li>One sandbox URL with a login. No mobile app, no offline, no SSO</li>
+      </ul>
+    </div>
+    <div class="panel sg"><h3>Where the days get lost</h3>
+      <ul>
+        <li><strong>Generic report builders.</strong> Fixed layouts only</li>
+        <li><strong>File uploads.</strong> A comment box is enough</li>
+        <li><strong>Email notifications.</strong> Nobody clicks an email in a demo</li>
+        <li><strong>Configurable everything.</strong> Hard-code the bands. Say "configurable" in the meeting, build it when they pay</li>
+        <li><strong>Pretty CSS from scratch.</strong> Use a component library and spend the time on the approval screen</li>
+      </ul>
+    </div>
+  </div>
+  </div>
+  <div class="foot"><b>Slide 17</b><span>If the timeline compresses, cut R2 and the second questionnaire. Never cut module 6.</span></div>
+</section>
+
+<!-- 18 ......................................................... -->
+<section class="slide">
+  <p class="eyebrow">Review of your model</p>
+  <h2 class="st">What was missing, and what comes next</h2>
+  <p class="sub">Your three-tier structure is sound and the build is genuinely leaner. Seven things were not in it — five are one field each, two are decisions only you can make.</p>
+  <div class="body">
+  <div class="cols two">
+    <div>
+      <div class="panel sg"><h3>Add before the developer starts</h3></div>
+      <div class="tw"><table>
+        <thead><tr><th>Gap</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td><strong>No cycle</strong> in the model</td><td><span class="mono">cycle_id</span> on every transaction. One column; a rebuild if skipped</td></tr>
+          <tr><td><strong>No weight</strong> on questions</td><td><span class="mono">weight_pct</span>, totalling 100. Without it "score" has no definition</td></tr>
+          <tr><td><strong>One rating column</strong></td><td>Needs three: self, manager, adjusted. Self vs manager is half the value of an appraisal</td></tr>
+          <tr><td><strong>Publishing by name</strong></td><td>Publish by division + department + designation filter. Picking 400 names is not a product</td></tr>
+          <tr><td><strong>No send-back reason</strong></td><td>Mandatory reason + approval_log. Without it the workflow looks like a toy</td></tr>
+          <tr><td><strong>Dependency evidence</strong></td><td>Decided: the provider's own score is the evidence, and the approver decides. No timestamps needed</td></tr>
+          <tr><td><strong>No roles</strong></td><td>Three: ADMIN, MANAGER, EMPLOYEE. The demo cannot be told without them</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="panel keep"><h3>Phase 2 — the slide you show after the demo</h3></div>
+      <div class="tw"><table>
+        <thead><tr><th>Capability</th><th>Sells as</th></tr></thead>
+        <tbody>
+          <tr><td>ERP integration on timestamped KPIs</td><td>"The number arrives by itself — no one keys it in, no one argues about it"</td></tr>
+          <tr><td>Employee acknowledgment of the final score</td><td>Closes the labour-dispute exposure</td></tr>
+          <tr><td>Multi-level approval, HOD sign-off</td><td>Matches their actual authority matrix</td></tr>
+          <tr><td>Questionnaire versioning + mid-cycle change control</td><td>Audit and compliance</td></tr>
+          <tr><td>Automatic event matching for dependencies</td><td>Relief proposed by the system, not claimed by the employee</td></tr>
+          <tr><td>Goal cascade with weight validation across entities</td><td>The group-level story from the original scope</td></tr>
+          <tr><td>Email and mobile</td><td>Adoption across 400 staff</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note">
+        <span class="lead">Commercial note</span>
+        <p>Everything on the right is real work you can price. Showing it as a sequenced roadmap — rather than admitting it as a gap — is what turns a lean demo into a phased contract.</p>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div class="foot sg"><b>Slide 18</b><span>The lean build is the right call. It ships, it demos without a network dependency, and it is reusable for the next client on day one.</span></div>
+</section>
+
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var dots = document.getElementById('dots');
+  var count = document.getElementById('count');
+  var modeBtn = document.getElementById('mode');
+  var navgrp = document.getElementById('navgrp');
+  var i = 0, n = slides.length;
+
+  slides.forEach(function(s, k){
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = k + 1; b.id = 'dot-' + (k + 1);
+    b.setAttribute('aria-label', 'Go to slide ' + (k + 1));
+    b.addEventListener('click', function(){ go(k); });
+    dots.appendChild(b);
+  });
+  var dotBtns = Array.prototype.slice.call(dots.children);
+
+  function go(k){
+    i = Math.max(0, Math.min(n - 1, k));
+    slides.forEach(function(s, x){ s.classList.toggle('active', x === i); });
+    dotBtns.forEach(function(b, x){ b.setAttribute('aria-current', x === i ? 'true' : 'false'); });
+    count.textContent = (i + 1) + ' / ' + n;
+    if (!document.body.classList.contains('doc')) window.scrollTo({ top: 0, behavior: 'auto' });
+    try { history.replaceState(null, '', '#s' + (i + 1)); } catch(e){}
+  }
+
+  function setMode(doc){
+    document.body.classList.toggle('doc', doc);
+    document.body.classList.toggle('deck', !doc);
+    modeBtn.textContent = doc ? 'Deck view' : 'Doc view';
+    modeBtn.setAttribute('aria-pressed', doc ? 'true' : 'false');
+    navgrp.hidden = doc;
+    try { localStorage.setItem('appraisal-deck-mode', doc ? 'doc' : 'deck'); } catch(e){}
+    if (!doc) go(i);
+  }
+
+  document.getElementById('prev').addEventListener('click', function(){ go(i - 1); });
+  document.getElementById('next').addEventListener('click', function(){ go(i + 1); });
+  modeBtn.addEventListener('click', function(){ setMode(!document.body.classList.contains('doc')); });
+
+  document.addEventListener('keydown', function(e){
+    if (document.body.classList.contains('doc')) return;
+    var t = e.target.tagName;
+    if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(i + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(i - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); go(0); }
+    else if (e.key === 'End') { e.preventDefault(); go(n - 1); }
+  });
+
+  var saved = 'deck';
+  try { saved = localStorage.getItem('appraisal-deck-mode') || 'deck'; } catch(e){}
+  setMode(saved === 'doc');
+
+  var m = /^#s(\d+)$/.exec(location.hash || '');
+  go(m ? parseInt(m[1], 10) - 1 : 0);
+})();
+</script>
