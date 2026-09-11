@@ -1,0 +1,900 @@
+<title>Dependency-Aware Appraisal Spec</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --serif:"Newsreader",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+
+  --paper:#f1f4f3; --surface:#ffffff; --surface-2:#e7eceb;
+  --ink:#101719; --ink-2:#44545a; --ink-3:#728286;
+  --rule:#d1dad8; --rule-2:#bcc8c5;
+  --accent:#0b6153; --accent-soft:#e0efec; --accent-line:#0b6153;
+  --signal:#a3441e; --signal-soft:#f8e9e1;
+  --b1:#a3312a; --b2:#b96b1f; --b3:#6f7a3d; --b4:#3a7a57; --b5:#155c4c;
+  --shadow:0 1px 2px rgba(16,23,25,.06),0 8px 24px -16px rgba(16,23,25,.35);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0c1214; --surface:#141c1e; --surface-2:#1b2528;
+    --ink:#e2e9e7; --ink-2:#a6b4b3; --ink-3:#7e8f8f;
+    --rule:#27343700; --rule:#263336; --rule-2:#374549;
+    --accent:#4aa794; --accent-soft:#10302b; --accent-line:#4aa794;
+    --signal:#e08a5d; --signal-soft:#301e17;
+    --b1:#d9736a; --b2:#dd9b4e; --b3:#a8b46a; --b4:#5fae83; --b5:#3f9a83;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -18px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0c1214; --surface:#141c1e; --surface-2:#1b2528;
+  --ink:#e2e9e7; --ink-2:#a6b4b3; --ink-3:#7e8f8f;
+  --rule:#263336; --rule-2:#374549;
+  --accent:#4aa794; --accent-soft:#10302b; --accent-line:#4aa794;
+  --signal:#e08a5d; --signal-soft:#301e17;
+  --b1:#d9736a; --b2:#dd9b4e; --b3:#a8b46a; --b4:#5fae83; --b5:#3f9a83;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -18px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.page{max-width:1200px;margin:0 auto;padding-inline:20px;padding-block:0 72px}
+
+/* ---------- masthead ---------- */
+.mast{border-bottom:2px solid var(--ink);padding-block:44px 20px;margin-bottom:8px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,5.4vw,50px);line-height:1.08;letter-spacing:-.015em;margin:0;text-wrap:balance;max-width:20ch}
+.dek{font-family:var(--serif);font-style:italic;font-size:clamp(16px,2.4vw,20px);line-height:1.45;color:var(--ink-2);margin:16px 0 0;max-width:62ch}
+.meta{display:flex;flex-wrap:wrap;gap:2px 0;margin-top:28px;border-top:1px solid var(--rule);padding-top:14px}
+.meta div{flex:1 1 150px;min-width:130px;padding-right:16px}
+.meta dt{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin:0 0 3px}
+.meta dd{margin:0;font-size:13.5px;font-weight:500}
+
+/* ---------- shell ---------- */
+.shell{display:grid;grid-template-columns:1fr;gap:0}
+@media(min-width:1040px){
+  .shell{grid-template-columns:212px minmax(0,1fr);gap:56px;align-items:start}
+  nav.toc{position:sticky;top:20px;padding-top:40px}
+}
+nav.toc{font-size:13px;border-bottom:1px solid var(--rule);padding-block:20px}
+@media(min-width:1040px){nav.toc{border-bottom:none;padding-block:40px 0}}
+nav.toc h2{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0 0 12px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+nav.toc a{display:flex;gap:9px;text-decoration:none;color:var(--ink-2);padding:3px 0;line-height:1.35}
+nav.toc a:hover{color:var(--accent)}
+nav.toc a span{font-family:var(--mono);font-size:11px;color:var(--ink-3);padding-top:1px}
+main{min-width:0;padding-top:8px}
+
+/* ---------- sections ---------- */
+section{padding-block:38px 0;scroll-margin-top:16px}
+h2.sec{font-family:var(--serif);font-size:clamp(21px,3vw,27px);font-weight:600;line-height:1.2;letter-spacing:-.01em;margin:0 0 6px;text-wrap:balance;display:flex;gap:12px;align-items:baseline}
+h2.sec em{font-family:var(--mono);font-style:normal;font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.08em;flex:none;padding-top:2px}
+h3{font-size:14px;font-weight:600;letter-spacing:.01em;margin:30px 0 8px;color:var(--ink)}
+h3.tag{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);border-bottom:1px solid var(--rule);padding-bottom:6px;margin-top:34px}
+p{margin:0 0 14px;max-width:70ch}
+main ul,main ol.list{margin:0 0 16px;padding-left:19px;max-width:70ch}
+main li{margin-bottom:6px}
+strong{font-weight:600}
+code,.mono{font-family:var(--mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:2px;color:var(--ink)}
+a{color:var(--accent)}
+
+/* ---------- figures ---------- */
+figure{margin:26px 0 30px}
+.dgm-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:18px 16px;box-shadow:var(--shadow)}
+figcaption{font-size:12.5px;line-height:1.5;color:var(--ink-2);margin-top:10px;max-width:74ch;display:flex;gap:9px}
+figcaption b{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--accent);flex:none;padding-top:1px}
+svg.dgm{display:block;height:auto;min-width:520px}
+svg.dgm.wide{min-width:1000px}
+.dgm rect.n{fill:var(--surface);stroke:var(--rule-2);stroke-width:1.25;rx:3px}
+.dgm rect.em{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.4}
+.dgm rect.sg{fill:var(--signal-soft);stroke:var(--signal);stroke-width:1.4}
+.dgm rect.mut{fill:none;stroke:var(--rule-2);stroke-dasharray:3 3;stroke-width:1}
+.dgm rect.lane{fill:var(--surface-2);stroke:none;opacity:.55}
+.dgm polygon.dia{fill:var(--surface);stroke:var(--ink-2);stroke-width:1.25}
+.dgm .fl{fill:none;stroke:var(--ink-2);stroke-width:1.25;marker-end:url(#ah)}
+.dgm .alt{stroke:var(--ink-3);stroke-dasharray:4 3;marker-end:url(#ah)}
+.dgm .sig{stroke:var(--signal);stroke-width:1.5;marker-end:url(#ahs)}
+.dgm .rule{stroke:var(--rule);stroke-width:1}
+.dgm .rule-d{stroke:var(--rule-2);stroke-width:1;stroke-dasharray:3 4}
+.dgm .mk{fill:var(--ink-2)}
+.dgm .mks{fill:var(--signal)}
+.dgm text{font-family:var(--sans)}
+.dgm .tt{font-size:12.5px;font-weight:600;fill:var(--ink)}
+.dgm .ts{font-size:11px;font-weight:400;fill:var(--ink-3)}
+.dgm .tm{font-family:var(--mono);font-size:10.5px;font-weight:500;fill:var(--ink-3);letter-spacing:.03em}
+.dgm .tl{font-family:var(--mono);font-size:10px;font-weight:600;fill:var(--ink-3);letter-spacing:.1em}
+.dgm .tp{font-family:var(--mono);font-size:10px;font-weight:600;fill:var(--accent);letter-spacing:.14em}
+.dgm .tsig{fill:var(--signal)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;margin:18px 0 22px;border:1px solid var(--rule);border-radius:4px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px}
+th{text-align:left;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);padding:11px 14px;border-bottom:1px solid var(--rule-2);white-space:nowrap;vertical-align:bottom}
+td{padding:10px 14px;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.45}
+tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+td.id{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--accent);white-space:nowrap}
+tr.total td{background:var(--surface-2);font-weight:600;border-top:1.5px solid var(--rule-2)}
+tr.hl td{background:var(--signal-soft)}
+.band{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:3px;font-family:var(--mono);font-size:12px;font-weight:600;color:#fff}
+.band.b1{background:var(--b1)}.band.b2{background:var(--b2)}.band.b3{background:var(--b3)}.band.b4{background:var(--b4)}.band.b5{background:var(--b5)}
+
+/* ---------- callouts / rules ---------- */
+.note{border-left:2px solid var(--accent-line);background:var(--accent-soft);padding:14px 18px;margin:20px 0;border-radius:0 4px 4px 0}
+.note.sig{border-left-color:var(--signal);background:var(--signal-soft)}
+.note p{margin:0;max-width:66ch;font-size:14px}
+.note p + p{margin-top:9px}
+.note .lead{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:6px}
+.note.sig .lead{color:var(--signal)}
+.rules{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--rule);margin:18px 0 24px}
+.rules div{display:grid;grid-template-columns:74px minmax(0,1fr);gap:16px;padding:11px 0;border-bottom:1px solid var(--rule);align-items:start}
+.rules dt{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--accent);padding-top:2px}
+.rules dd{margin:0;font-size:14px;line-height:1.5}
+.fr{display:grid;grid-template-columns:78px minmax(0,1fr);gap:16px;padding:12px 0;border-bottom:1px solid var(--rule);align-items:start}
+.fr:first-of-type{border-top:1px solid var(--rule)}
+.fr .fid{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--accent);padding-top:2px}
+.fr b{display:block;font-size:14px;font-weight:600;margin-bottom:2px}
+.fr span.d{font-size:13.5px;color:var(--ink-2);line-height:1.5;display:block}
+.formula{font-family:var(--mono);font-size:13px;background:var(--surface);border:1px solid var(--rule);border-left:2px solid var(--accent-line);padding:14px 18px;margin:16px 0;border-radius:0 4px 4px 0;overflow-x:auto;line-height:1.9}
+.formula i{font-style:normal;color:var(--ink-3)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:18px 0 8px;max-width:74ch}
+.steps li{counter-increment:s;display:grid;grid-template-columns:30px minmax(0,1fr);gap:14px;padding:12px 0;border-bottom:1px solid var(--rule);margin:0}
+.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--ink-3);padding-top:3px}
+.steps b{display:block;font-size:14px;margin-bottom:1px}
+.steps span{font-size:13.5px;color:var(--ink-2);line-height:1.5}
+.scope{display:grid;grid-template-columns:1fr;gap:18px;margin:20px 0 8px}
+@media(min-width:660px){.scope{grid-template-columns:1fr 1fr}}
+.scope>div{border-top:2px solid var(--ink);padding-top:12px}
+.scope>div.out{border-top-color:var(--rule-2)}
+.scope h4{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;margin:0 0 10px;color:var(--ink)}
+.scope.out h4{color:var(--ink-3)}
+.scope ul{margin:0;padding-left:17px;font-size:13.5px}
+.scope div.out ul{color:var(--ink-3)}
+.scope li{margin-bottom:5px}
+footer{margin-top:56px;padding-top:18px;border-top:2px solid var(--ink);font-size:12.5px;color:var(--ink-3);max-width:74ch}
+footer p{max-width:74ch;margin-bottom:8px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(prefers-reduced-motion:no-preference){nav.toc a{transition:color .15s}}
+</style>
+
+<div class="page">
+
+<header class="mast">
+  <p class="eyebrow">Software requirements specification &nbsp;·&nbsp; Use case 01</p>
+  <h1>Dependency-Aware Performance Appraisal</h1>
+  <p class="dek">One vertical slice of the platform, specified end to end: a single cascaded objective, two interdependent KPIs across two roles, one bi-annual cycle — from goal cascade through ERP data capture, scoring, dependency resolution and employee acknowledgment.</p>
+  <dl class="meta">
+    <div><dt>Document</dt><dd>SRS / UC-01</dd></div>
+    <div><dt>Version</dt><dd>1.0 — Draft for demo</dd></div>
+    <div><dt>Date</dt><dd>11 September 2026</dd></div>
+    <div><dt>Prepared for</dt><dd>Group X &amp; subsidiaries</dd></div>
+    <div><dt>Delivery model</dt><dd>Multi-tenant SaaS, subscription</dd></div>
+    <div><dt>Status</dt><dd>Scope frozen for prototype</dd></div>
+  </dl>
+</header>
+
+<div class="shell">
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#s1"><span>1</span>Why one use case</a></li>
+    <li><a href="#s2"><span>2</span>Scope of UC-01</a></li>
+    <li><a href="#s3"><span>3</span>Actors</a></li>
+    <li><a href="#s4"><span>4</span>Goal cascade model</a></li>
+    <li><a href="#s5"><span>5</span>Master process flow</a></li>
+    <li><a href="#s6"><span>6</span>Workflow states</a></li>
+    <li><a href="#s7"><span>7</span>ERP data capture</a></li>
+    <li><a href="#s8"><span>8</span>Scoring model</a></li>
+    <li><a href="#s9"><span>9</span>Interdependency engine</a></li>
+    <li><a href="#s10"><span>10</span>Worked example</a></li>
+    <li><a href="#s11"><span>11</span>Business rules</a></li>
+    <li><a href="#s12"><span>12</span>Functional requirements</a></li>
+    <li><a href="#s13"><span>13</span>Traceability</a></li>
+    <li><a href="#s14"><span>14</span>Platform &amp; NFRs</a></li>
+    <li><a href="#s15"><span>15</span>Demo storyboard</a></li>
+    <li><a href="#s16"><span>16</span>Phase 2 backlog</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<section id="s1">
+  <h2 class="sec"><em>01</em>Why one use case, not the whole platform</h2>
+  <p>The client's brief covers six capability areas. Building all six before a signature is how prototypes die. This specification instead isolates <strong>the one thread that proves all six at once</strong> — and that no competitor in this bracket demonstrates convincingly.</p>
+  <p>That thread is the client's own example: an HR Executive who must deliver attendance data, and a Payroll Manager whose KPI cannot be met if that data is late. Following a single dependent KPI pair through one complete cycle necessarily exercises the cascade, the workflows, the scoring scale, the ERP pull and the dashboards. Everything else in the platform is breadth on top of a mechanism this use case already proves.</p>
+  <div class="note">
+    <span class="lead">Demo thesis</span>
+    <p>Every appraisal tool can score an individual. This one can tell you <em>whose</em> failure caused the score — and move the accountability to the right person, with an audit trail the HOD approves.</p>
+  </div>
+</section>
+
+<section id="s2">
+  <h2 class="sec"><em>02</em>Scope of UC-01</h2>
+  <p>Reference scenario: <strong>X Contracting LLC</strong>, a subsidiary of Group X. Cycle <span class="mono">H1-2026</span> (Jan–Jun), reviewed in June. Department: HR &amp; Payroll. Two employees, one dependency link, one ERP connection.</p>
+  <div class="scope">
+    <div>
+      <h4>In scope for the prototype</h4>
+      <ul>
+        <li>Four-level goal cascade with weight validation</li>
+        <li>KPI definition, approval and employee acknowledgment workflows</li>
+        <li>Scheduled ERP pull of attendance and payroll actuals</li>
+        <li>1–5 band scoring with weighted roll-up</li>
+        <li>One-hop dependency resolution with HOD approval</li>
+        <li>Company / department / individual dashboards</li>
+        <li>Immutable audit trail on every score change</li>
+      </ul>
+    </div>
+    <div class="out">
+      <h4>Deliberately out — phase 2</h4>
+      <ul>
+        <li>360° and peer feedback</li>
+        <li>Competency / behavioural frameworks</li>
+        <li>Bell-curve normalisation and forced ranking</li>
+        <li>Cross-entity and multi-hop dependency chains</li>
+        <li>Increment, bonus and succession modelling</li>
+        <li>Arabic UI localisation</li>
+        <li>Mobile app (responsive web only in phase 1)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="s3">
+  <h2 class="sec"><em>03</em>Actors and responsibilities</h2>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Actor</th><th>Reference persona</th><th>Owns in UC-01</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Group HR Head</strong></td><td>Group X corporate</td><td>Opens the cycle, sets group objectives and entity weights, locks the cycle at close</td></tr>
+      <tr><td><strong>HOD / Approver</strong></td><td>Head of HR &amp; Payroll</td><td>Approves KPI sets, approves or rejects dependency adjustments, signs off appraisals</td></tr>
+      <tr><td><strong>Line Manager</strong></td><td>Payroll &amp; HR Supervisor</td><td>Defines individual KPIs, declares dependency links, reviews impact notes, conducts the appraisal meeting</td></tr>
+      <tr><td><strong>Employee — provider</strong></td><td>HR Executive</td><td>Acknowledges KPIs, delivers attendance data, acknowledges appraisal</td></tr>
+      <tr><td><strong>Employee — consumer</strong></td><td>Payroll Manager</td><td>Acknowledges KPIs, runs payroll, raises dependency claims, acknowledges appraisal</td></tr>
+      <tr><td><strong>Integration service</strong></td><td>System actor</td><td>Pulls actuals from the ERP on schedule, writes immutable KPI actual records</td></tr>
+      <tr><td><strong>Scoring engine</strong></td><td>System actor</td><td>Computes achievement, applies bands, evaluates dependency links, proposes adjustments</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="s4">
+  <h2 class="sec"><em>04</em>Goal cascade model</h2>
+  <p>Targets descend through four levels. Each level consumes a weight allocation from its parent, and the system refuses to advance a scorecard whose child weights do not total exactly 100%. This is what makes the cascade an accounting structure rather than a list of aspirations.</p>
+
+  <figure>
+    <div class="dgm-wrap">
+    <svg class="dgm" viewBox="0 0 880 384" role="img" aria-label="Four-level cascade: a Group X objective flows into a subsidiary scorecard, then into the HR and Payroll department scorecard, then into two individual KPIs, with weight allocations on every link.">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><polygon class="mk" points="0,1 10,5 0,9"/></marker>
+        <marker id="ahs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><polygon class="mks" points="0,1 10,5 0,9"/></marker>
+      </defs>
+
+      <text class="tl" x="8" y="44">L1 · GROUP</text>
+      <text class="tl" x="8" y="132">L2 · ENTITY</text>
+      <text class="tl" x="8" y="220">L3 · DEPARTMENT</text>
+      <text class="tl" x="8" y="312">L4 · INDIVIDUAL</text>
+      <line class="rule-d" x1="122" y1="8" x2="122" y2="372"/>
+
+      <rect class="n em" x="300" y="16" width="280" height="48"/>
+      <text class="tt" x="440" y="36" text-anchor="middle">Group objective FY26</text>
+      <text class="ts" x="440" y="52" text-anchor="middle">Operational efficiency +15%</text>
+
+      <rect class="n" x="300" y="104" width="280" height="48"/>
+      <text class="tt" x="440" y="124" text-anchor="middle">X Contracting LLC — scorecard</text>
+      <text class="ts" x="440" y="140" text-anchor="middle">entity share of group objective</text>
+
+      <rect class="n" x="150" y="192" width="340" height="48"/>
+      <text class="tt" x="320" y="212" text-anchor="middle">HR &amp; Payroll department scorecard</text>
+      <text class="ts" x="320" y="228" text-anchor="middle">objective: accurate, on-time payroll</text>
+
+      <rect class="n mut" x="520" y="192" width="240" height="48"/>
+      <text class="ts" x="640" y="216" text-anchor="middle">Projects · Procurement · QHSE</text>
+      <text class="ts" x="640" y="231" text-anchor="middle">same structure, out of demo scope</text>
+
+      <rect class="n" x="150" y="280" width="180" height="72"/>
+      <text class="tm" x="240" y="300" text-anchor="middle">KPI-HR-01</text>
+      <text class="tt" x="240" y="318" text-anchor="middle">Attendance file</text>
+      <text class="ts" x="240" y="334" text-anchor="middle">to Payroll by Day 2</text>
+
+      <rect class="n" x="350" y="280" width="180" height="72"/>
+      <text class="tm" x="440" y="300" text-anchor="middle">KPI-PR-01</text>
+      <text class="tt" x="440" y="318" text-anchor="middle">Payroll by Day 5</text>
+      <text class="ts" x="440" y="334" text-anchor="middle">correction rate ≤ 1%</text>
+
+      <line class="fl" x1="440" y1="64" x2="440" y2="100"/>
+      <text class="tm" x="450" y="88">cascade 100%</text>
+
+      <path class="fl" d="M440,152 V172 H320 V188"/>
+      <path class="fl" d="M440,152 V172 H640 V188"/>
+      <text class="tm" x="340" y="165">35% weight</text>
+      <text class="tm" x="560" y="165">65% weight</text>
+
+      <path class="fl" d="M320,240 V262 H240 V276"/>
+      <path class="fl" d="M320,240 V262 H440 V276"/>
+      <text class="tm" x="200" y="257" text-anchor="end">wt 30</text>
+      <text class="tm" x="452" y="257">wt 35</text>
+      <path class="alt" d="M640,240 V270"/>
+    </svg>
+    </div>
+    <figcaption><b>FIG 1</b><span>The cascade is a weight ledger: every node's children must sum to 100% before the parent scorecard can be approved, so an individual KPI is always traceable to a share of a group objective.</span></figcaption>
+  </figure>
+
+  <h3 class="tag">Core entities</h3>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Entity</th><th>Key attributes</th><th>Cardinality</th></tr></thead>
+    <tbody>
+      <tr><td class="id">tenant</td><td>tenant_id, group name, subscription plan, active headcount</td><td>1 per client group</td></tr>
+      <tr><td class="id">entity</td><td>entity_id, parent_entity_id, legal name, trade licence, currency</td><td>tree within tenant</td></tr>
+      <tr><td class="id">cycle</td><td>cycle_id, code (H1-2026), start, end, review window, status</td><td>2 per year per tenant</td></tr>
+      <tr><td class="id">scorecard</td><td>scorecard_id, level (group / entity / dept / individual), owner, parent, weight_share</td><td>1 per owner per cycle</td></tr>
+      <tr><td class="id">kpi</td><td>kpi_id, scorecard_id, code, title, direction, unit, target, weight, source (erp / manual), version, status</td><td>4–8 per individual</td></tr>
+      <tr><td class="id">kpi_actual</td><td>actual_id, kpi_id, period, value, source_ref, captured_at, superseded_by</td><td>append-only</td></tr>
+      <tr><td class="id">dependency_link</td><td>link_id, provider_kpi_id, consumer_kpi_id, type, alpha, impact_window_days, status</td><td>0..n per KPI</td></tr>
+      <tr><td class="id">score</td><td>score_id, kpi_id, achievement_pct, raw_band, adjusted_band, adjustment_ref</td><td>1 per KPI per cycle</td></tr>
+      <tr><td class="id">impact_note</td><td>note_id, link_id, matched_events, attributable, proposed_band, approver, decision, reason</td><td>1 per triggered link</td></tr>
+      <tr><td class="id">appraisal</td><td>appraisal_id, employee, cycle, weighted_score, final_band, narrative, status</td><td>1 per employee per cycle</td></tr>
+      <tr><td class="id">audit_event</td><td>event_id, actor, entity_ref, before, after, reason, timestamp</td><td>append-only, immutable</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="s5">
+  <h2 class="sec"><em>05</em>Master process flow</h2>
+  <p>The complete lifecycle of one cycle, by responsible actor. Six phases run left to right; the two vertical crossings at either end are deliberate — the cycle is opened by a human and closed by the system.</p>
+
+  <figure>
+    <div class="dgm-wrap">
+    <svg class="dgm wide" viewBox="0 0 1350 400" role="img" aria-label="Swimlane flow across six phases — setup, define and agree, capture, score, resolve, appraise and close — with lanes for the system and ERP, the line manager, the HOD, and the employee.">
+      <rect class="lane" x="0" y="132" width="1350" height="88"/>
+      <rect class="lane" x="0" y="308" width="1350" height="88"/>
+
+      <line class="rule" x1="0" y1="44" x2="1350" y2="44"/>
+      <line class="rule" x1="0" y1="132" x2="1350" y2="132"/>
+      <line class="rule" x1="0" y1="220" x2="1350" y2="220"/>
+      <line class="rule" x1="0" y1="308" x2="1350" y2="308"/>
+      <line class="rule" x1="0" y1="396" x2="1350" y2="396"/>
+      <line class="rule" x1="130" y1="0" x2="130" y2="396"/>
+      <line class="rule-d" x1="330" y1="0" x2="330" y2="396"/>
+      <line class="rule-d" x1="550" y1="0" x2="550" y2="396"/>
+      <line class="rule-d" x1="730" y1="0" x2="730" y2="396"/>
+      <line class="rule-d" x1="910" y1="0" x2="910" y2="396"/>
+      <line class="rule-d" x1="1100" y1="0" x2="1100" y2="396"/>
+
+      <text class="tp" x="144" y="28">1 · SETUP</text>
+      <text class="tp" x="344" y="28">2 · DEFINE &amp; AGREE</text>
+      <text class="tp" x="564" y="28">3 · CAPTURE</text>
+      <text class="tp" x="744" y="28">4 · SCORE</text>
+      <text class="tp" x="924" y="28">5 · RESOLVE</text>
+      <text class="tp" x="1114" y="28">6 · APPRAISE &amp; CLOSE</text>
+
+      <text class="tl" x="10" y="92">SYSTEM / ERP</text>
+      <text class="tl" x="10" y="180">LINE MANAGER</text>
+      <text class="tl" x="10" y="268">HOD / HR HEAD</text>
+      <text class="tl" x="10" y="356">EMPLOYEE</text>
+
+      <rect class="n em" x="145" y="240" width="170" height="48"/>
+      <text class="tt" x="230" y="260" text-anchor="middle">Open cycle H1-2026</text>
+      <text class="ts" x="230" y="276" text-anchor="middle">Jan–Jun, review in June</text>
+
+      <rect class="n" x="145" y="64" width="170" height="48"/>
+      <text class="tt" x="230" y="84" text-anchor="middle">Cascade scorecards</text>
+      <text class="ts" x="230" y="100" text-anchor="middle">validate weights = 100%</text>
+
+      <rect class="n" x="350" y="152" width="180" height="48"/>
+      <text class="tt" x="440" y="172" text-anchor="middle">Set KPIs and targets</text>
+      <text class="ts" x="440" y="188" text-anchor="middle">declare dependency links</text>
+
+      <rect class="n" x="350" y="240" width="180" height="48"/>
+      <text class="tt" x="440" y="260" text-anchor="middle">Approve KPI set</text>
+      <text class="ts" x="440" y="276" text-anchor="middle">or return for rework</text>
+
+      <rect class="n" x="350" y="328" width="180" height="48"/>
+      <text class="tt" x="440" y="348" text-anchor="middle">Acknowledge KPIs</text>
+      <text class="ts" x="440" y="364" text-anchor="middle">e-sign, 7-day escalation</text>
+
+      <rect class="n" x="565" y="64" width="150" height="48"/>
+      <text class="tt" x="640" y="84" text-anchor="middle">Nightly ERP pull</text>
+      <text class="ts" x="640" y="100" text-anchor="middle">writes kpi_actual</text>
+
+      <rect class="n" x="565" y="328" width="150" height="48"/>
+      <text class="tt" x="640" y="348" text-anchor="middle">Evidence upload</text>
+      <text class="ts" x="640" y="364" text-anchor="middle">non-ERP actuals</text>
+
+      <rect class="n" x="745" y="64" width="150" height="48"/>
+      <text class="tt" x="820" y="84" text-anchor="middle">Achievement %</text>
+      <text class="ts" x="820" y="100" text-anchor="middle">→ raw band 1–5</text>
+
+      <rect class="n sg" x="925" y="56" width="160" height="64"/>
+      <text class="tt" x="1005" y="78" text-anchor="middle">Evaluate links</text>
+      <text class="ts" x="1005" y="94" text-anchor="middle">match breach events,</text>
+      <text class="ts" x="1005" y="109" text-anchor="middle">propose adjustment</text>
+
+      <rect class="n" x="925" y="152" width="160" height="48"/>
+      <text class="tt" x="1005" y="172" text-anchor="middle">Review impact note</text>
+      <text class="ts" x="1005" y="188" text-anchor="middle">accept or contest</text>
+
+      <rect class="n sg" x="925" y="240" width="160" height="48"/>
+      <text class="tt" x="1005" y="260" text-anchor="middle">Approve adjustment</text>
+      <text class="ts" x="1005" y="276" text-anchor="middle">reason mandatory</text>
+
+      <rect class="n" x="1115" y="152" width="185" height="48"/>
+      <text class="tt" x="1207" y="172" text-anchor="middle">Appraisal review</text>
+      <text class="ts" x="1207" y="188" text-anchor="middle">meeting and narrative</text>
+
+      <rect class="n" x="1115" y="240" width="185" height="48"/>
+      <text class="tt" x="1207" y="260" text-anchor="middle">Sign off appraisal</text>
+      <text class="ts" x="1207" y="276" text-anchor="middle">final band locked</text>
+
+      <rect class="n" x="1115" y="328" width="185" height="48"/>
+      <text class="tt" x="1207" y="348" text-anchor="middle">Acknowledge appraisal</text>
+      <text class="ts" x="1207" y="364" text-anchor="middle">or raise dispute</text>
+
+      <rect class="n" x="1115" y="64" width="185" height="48"/>
+      <text class="tt" x="1207" y="84" text-anchor="middle">Lock cycle</text>
+      <text class="ts" x="1207" y="100" text-anchor="middle">publish dashboards</text>
+
+      <line class="fl" x1="230" y1="240" x2="230" y2="116"/>
+      <text class="tm" x="238" y="182">opens</text>
+      <path class="fl" d="M315,88 H332 V176 H346"/>
+      <text class="tm" x="338" y="145">targets</text>
+      <line class="fl" x1="440" y1="200" x2="440" y2="236"/>
+      <text class="tm" x="448" y="222">submit</text>
+      <line class="fl" x1="440" y1="288" x2="440" y2="324"/>
+      <text class="tm" x="448" y="310">approved</text>
+      <path class="fl alt" d="M530,264 H541 V176 H534"/>
+      <text class="tm" x="524" y="145" text-anchor="end">rework</text>
+      <line class="fl" x1="530" y1="352" x2="561" y2="352"/>
+      <line class="fl" x1="715" y1="88" x2="741" y2="88"/>
+      <line class="fl alt" x1="640" y1="328" x2="640" y2="116"/>
+      <text class="tm" x="648" y="250">manual</text>
+      <line class="fl" x1="895" y1="88" x2="921" y2="88"/>
+      <line class="fl" x1="1005" y1="120" x2="1005" y2="148"/>
+      <text class="tm tsig" x="1013" y="143">impact note</text>
+      <line class="fl" x1="1005" y1="200" x2="1005" y2="236"/>
+      <line class="fl" x1="1207" y1="200" x2="1207" y2="236"/>
+      <line class="fl" x1="1207" y1="288" x2="1207" y2="324"/>
+      <text class="tm" x="1215" y="310">released</text>
+      <path class="fl" d="M1085,264 H1100 V176 H1111"/>
+      <text class="tm tsig" transform="rotate(-90 1093 220)" x="1093" y="220" text-anchor="middle">adjusted score</text>
+      <path class="fl alt" d="M1115,352 H1104 V176 H1111"/>
+      <text class="tm" x="1098" y="314" text-anchor="end">dispute</text>
+      <path class="fl" d="M1300,352 H1320 V88 H1304"/>
+      <text class="tm" transform="rotate(-90 1338 220)" x="1338" y="220" text-anchor="middle">acknowledged</text>
+    </svg>
+    </div>
+    <figcaption><b>FIG 2</b><span>Nothing is scored until the employee has acknowledged their KPIs, and no dependency adjustment reaches an appraisal without an HOD approving it with a written reason — the two control points that make the output defensible in a dispute.</span></figcaption>
+  </figure>
+</section>
+
+<section id="s6">
+  <h2 class="sec"><em>06</em>KPI workflow states</h2>
+  <p>A KPI is a controlled document. Once acknowledged it cannot be edited silently — a mid-cycle change creates a new version and re-enters approval, and both versions survive in the audit trail. This is the feature that protects the employer in a labour dispute and the employee against a moving target.</p>
+
+  <figure>
+    <div class="dgm-wrap">
+    <svg class="dgm" viewBox="0 0 900 192" role="img" aria-label="KPI state machine: draft, pending approval, approved, acknowledged, in cycle and scored, with return paths for rework, employee query and mid-cycle revision.">
+      <rect class="n" x="40" y="60" width="120" height="44"/><text class="tt" x="100" y="87" text-anchor="middle">DRAFT</text>
+      <rect class="n" x="180" y="60" width="120" height="44"/><text class="tt" x="240" y="80" text-anchor="middle">PENDING</text><text class="tt" x="240" y="95" text-anchor="middle">APPROVAL</text>
+      <rect class="n" x="320" y="60" width="120" height="44"/><text class="tt" x="380" y="87" text-anchor="middle">APPROVED</text>
+      <rect class="n em" x="460" y="60" width="120" height="44"/><text class="tt" x="520" y="87" text-anchor="middle">ACKNOWLEDGED</text>
+      <rect class="n" x="600" y="60" width="120" height="44"/><text class="tt" x="660" y="80" text-anchor="middle">IN CYCLE</text><text class="ts" x="660" y="95" text-anchor="middle">locked</text>
+      <rect class="n" x="740" y="60" width="120" height="44"/><text class="tt" x="800" y="87" text-anchor="middle">SCORED</text>
+
+      <line class="fl" x1="160" y1="82" x2="176" y2="82"/>
+      <line class="fl" x1="300" y1="82" x2="316" y2="82"/>
+      <line class="fl" x1="440" y1="82" x2="456" y2="82"/>
+      <line class="fl" x1="580" y1="82" x2="596" y2="82"/>
+      <line class="fl" x1="720" y1="82" x2="736" y2="82"/>
+      <text class="tm" x="168" y="52" text-anchor="middle">submit</text>
+      <text class="tm" x="308" y="52" text-anchor="middle">approve</text>
+      <text class="tm" x="448" y="52" text-anchor="middle">e-sign</text>
+      <text class="tm" x="588" y="52" text-anchor="middle">start</text>
+      <text class="tm" x="728" y="52" text-anchor="middle">close</text>
+
+      <path class="fl alt" d="M240,104 V138 H100 V108"/>
+      <text class="tm" x="170" y="152" text-anchor="middle">reject · rework</text>
+      <path class="fl alt" d="M520,104 V166 H240 V108"/>
+      <text class="tm" x="380" y="180" text-anchor="middle">employee raises query</text>
+      <path class="fl alt" d="M660,60 V26 H240 V56"/>
+      <text class="tm" x="450" y="19" text-anchor="middle">mid-cycle revision · new version, re-approval required</text>
+    </svg>
+    </div>
+    <figcaption><b>FIG 3</b><span>Three return paths, each with a different cost: rework is free before approval, a query is free before acknowledgment, and a mid-cycle revision forces a versioned re-approval that both parties sign again.</span></figcaption>
+  </figure>
+</section>
+
+<section id="s7">
+  <h2 class="sec"><em>07</em>ERP data capture</h2>
+  <p>The platform never writes to the ERP. It reads on a schedule, maps ERP metric codes to KPI identifiers through a tenant-level mapping table, and stores every actual as an append-only record carrying its source reference. A correction from the ERP does not overwrite — it supersedes, and both rows remain visible.</p>
+
+  <figure>
+    <div class="dgm-wrap">
+    <svg class="dgm" viewBox="0 0 900 246" role="img" aria-label="ERP integration flow: the ERP is read by a scheduled connector into staging and mapping, then into an immutable kpi_actual store consumed by the scoring engine, with a manual entry path and a sync failure queue.">
+      <rect class="n mut" x="30" y="44" width="150" height="60"/>
+      <text class="tt" x="105" y="69" text-anchor="middle">ERP (existing)</text>
+      <text class="ts" x="105" y="86" text-anchor="middle">attendance · payroll</text>
+
+      <rect class="n" x="208" y="44" width="150" height="60"/>
+      <text class="tt" x="283" y="69" text-anchor="middle">Connector</text>
+      <text class="ts" x="283" y="86" text-anchor="middle">pull 02:00 GST</text>
+
+      <rect class="n" x="386" y="44" width="150" height="60"/>
+      <text class="tt" x="461" y="69" text-anchor="middle">Staging + mapping</text>
+      <text class="ts" x="461" y="86" text-anchor="middle">metric_code → kpi_id</text>
+
+      <rect class="n em" x="564" y="44" width="150" height="60"/>
+      <text class="tt" x="639" y="69" text-anchor="middle">kpi_actual</text>
+      <text class="ts" x="639" y="86" text-anchor="middle">append-only, sourced</text>
+
+      <rect class="n" x="742" y="44" width="128" height="60"/>
+      <text class="tt" x="806" y="69" text-anchor="middle">Scoring</text>
+      <text class="ts" x="806" y="86" text-anchor="middle">engine</text>
+
+      <line class="fl" x1="180" y1="74" x2="204" y2="74"/>
+      <line class="fl" x1="358" y1="74" x2="382" y2="74"/>
+      <line class="fl" x1="536" y1="74" x2="560" y2="74"/>
+      <line class="fl" x1="714" y1="74" x2="738" y2="74"/>
+      <text class="tm" x="192" y="34" text-anchor="middle">read-only</text>
+      <text class="tm" x="370" y="34" text-anchor="middle">raw rows</text>
+      <text class="tm" x="548" y="34" text-anchor="middle">mapped</text>
+      <text class="tm" x="726" y="34" text-anchor="middle">by period</text>
+
+      <rect class="n" x="208" y="172" width="150" height="52"/>
+      <text class="tt" x="283" y="194" text-anchor="middle">Sync failure queue</text>
+      <text class="ts" x="283" y="210" text-anchor="middle">alert HR admin</text>
+      <path class="fl alt" d="M283,104 V168"/>
+      <text class="tm" x="291" y="142">on error</text>
+
+      <rect class="n" x="420" y="172" width="180" height="52"/>
+      <text class="tt" x="510" y="194" text-anchor="middle">Manual entry</text>
+      <text class="ts" x="510" y="210" text-anchor="middle">evidence attachment</text>
+      <path class="fl alt" d="M600,198 H639 V108"/>
+      <text class="tm" x="647" y="160">source = manual,</text>
+      <text class="tm" x="647" y="174">flagged in dashboard</text>
+    </svg>
+    </div>
+    <figcaption><b>FIG 4</b><span>Every actual carries its provenance. A manually entered number scores identically to an ERP-sourced one but is visibly flagged, so a department that quietly hand-keys its results cannot hide behind a clean-looking dashboard.</span></figcaption>
+  </figure>
+
+  <h3 class="tag">Integration contract — phase 1</h3>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Aspect</th><th>Specification</th></tr></thead>
+    <tbody>
+      <tr><td>Direction</td><td>Read-only, platform pulls from ERP. No writes back in phase 1.</td></tr>
+      <tr><td>Transport</td><td>REST over HTTPS, or a read-only database view where the ERP has no API. Both supported by the same connector.</td></tr>
+      <tr><td>Auth</td><td>OAuth 2.0 client credentials, or API key per tenant, stored encrypted at rest.</td></tr>
+      <tr><td>Schedule</td><td>Nightly at 02:00 GST, plus on-demand re-sync from the admin console. Period close triggers a final sync.</td></tr>
+      <tr><td>Payload</td><td><span class="mono">entity_id · employee_code · metric_code · period · value · source_ref · captured_at</span></td></tr>
+      <tr><td>Idempotency</td><td>Unique on <span class="mono">(metric_code, employee_code, period, source_ref)</span>; repeats are ignored, changes supersede.</td></tr>
+      <tr><td>Failure</td><td>Retry ×3 with backoff, then queue and alert. The cycle cannot be locked while unresolved sync failures exist on scored KPIs.</td></tr>
+      <tr><td>Demo fallback</td><td>Two metrics only — attendance file submission timestamp and payroll run completion timestamp — which keeps the integration surface to a single afternoon of work.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="s8">
+  <h2 class="sec"><em>08</em>Scoring model</h2>
+  <p>Achievement is normalised against target before banding, so KPIs measured in dirhams, days and percentages can sit on one scorecard and roll up honestly.</p>
+
+  <div class="formula">
+achievement_pct = actual ÷ target × 100 &nbsp;&nbsp;<i>— when higher is better</i><br>
+achievement_pct = target ÷ actual × 100 &nbsp;&nbsp;<i>— when lower is better (cost, defects, days)</i><br>
+weighted_score &nbsp;= Σ ( band<i>ᵢ</i> × weight<i>ᵢ</i> ) ÷ Σ weight<i>ᵢ</i> &nbsp;&nbsp;<i>— weights total 100</i>
+  </div>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th class="num">Band</th><th>Label</th><th>Achievement</th><th>Meaning to the business</th></tr></thead>
+    <tbody>
+      <tr><td class="num"><span class="band b5">5</span></td><td>Exceptional</td><td class="num">≥ 110%</td><td>Materially beyond target; candidate for stretch objectives next cycle</td></tr>
+      <tr><td class="num"><span class="band b4">4</span></td><td>Exceeds</td><td class="num">100 – 109.9%</td><td>Target met with margin</td></tr>
+      <tr><td class="num"><span class="band b3">3</span></td><td>Meets</td><td class="num">90 – 99.9%</td><td>Delivered as agreed</td></tr>
+      <tr><td class="num"><span class="band b2">2</span></td><td>Partially meets</td><td class="num">75 – 89.9%</td><td>Shortfall requiring a documented action plan</td></tr>
+      <tr><td class="num"><span class="band b1">1</span></td><td>Below expectation</td><td class="num">&lt; 75%</td><td>Formal performance improvement plan triggered</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The same five thresholds convert the weighted score into a final appraisal band: <span class="mono">4.50–5.00 → 5</span>, <span class="mono">3.50–4.49 → 4</span>, <span class="mono">2.50–3.49 → 3</span>, <span class="mono">1.50–2.49 → 2</span>, <span class="mono">1.00–1.49 → 1</span>. Bands and thresholds are tenant configuration, not code, so a client running a 1–4 or 1–10 scale is a settings change rather than a new build.</p>
+</section>
+
+<section id="s9">
+  <h2 class="sec"><em>09</em>Interdependency engine</h2>
+  <p>This is the mechanism the rest of the platform exists to serve. A dependency link is declared at KPI definition time, approved with the KPI set, and evaluated automatically after scoring — but it never changes a rating on its own. It produces a proposal that a human approves, because an automatic score change nobody signed is worthless the moment it is challenged.</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Attribute</th><th>Meaning</th><th>Demo value</th></tr></thead>
+    <tbody>
+      <tr><td class="id">provider_kpi</td><td>The KPI whose output another role consumes</td><td>KPI-HR-01 — attendance file by Day 2</td></tr>
+      <tr><td class="id">consumer_kpi</td><td>The KPI that cannot be met if the provider fails</td><td>KPI-PR-01 — payroll by Day 5</td></tr>
+      <tr><td class="id">type</td><td><span class="mono">BLOCKING</span> — consumer cannot start at all<br><span class="mono">DEGRADING</span> — consumer is slowed or partially impaired</td><td>DEGRADING</td></tr>
+      <tr><td class="id">alpha (α)</td><td>Share of the consumer's failure attributable to the provider, agreed by both managers at KPI approval</td><td class="num">0.80</td></tr>
+      <tr><td class="id">impact_window</td><td>Days after a provider breach within which a consumer failure is presumed related</td><td class="num">3 days</td></tr>
+      <tr><td class="id">cap</td><td>Maximum uplift the adjustment may grant</td><td class="num">2 bands</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <figure>
+    <div class="dgm-wrap">
+    <svg class="dgm" viewBox="0 0 820 740" role="img" aria-label="Decision flow for dependency resolution: three tests must pass — consumer below target, an active declared link, and a provider breach inside the impact window — before attributable events are computed, an impact note is drafted and an HOD approves the adjustment.">
+      <rect class="n" x="170" y="16" width="260" height="44"/>
+      <text class="tt" x="300" y="35" text-anchor="middle">Cycle scoring run complete</text>
+      <text class="ts" x="300" y="51" text-anchor="middle">raw bands assigned to both KPIs</text>
+
+      <polygon class="dia" points="300,72 424,110 300,148 176,110"/>
+      <text class="tt" x="300" y="106" text-anchor="middle">Consumer KPI</text>
+      <text class="tt" x="300" y="121" text-anchor="middle">below target?</text>
+
+      <polygon class="dia" points="300,192 424,230 300,268 176,230"/>
+      <text class="tt" x="300" y="226" text-anchor="middle">Dependency link</text>
+      <text class="tt" x="300" y="241" text-anchor="middle">declared and active?</text>
+
+      <polygon class="dia" points="300,306 436,350 300,394 164,350"/>
+      <text class="tt" x="300" y="339" text-anchor="middle">Provider breached</text>
+      <text class="tt" x="300" y="354" text-anchor="middle">inside the impact</text>
+      <text class="tt" x="300" y="369" text-anchor="middle">window?</text>
+
+      <rect class="n sg" x="160" y="420" width="280" height="52"/>
+      <text class="tt" x="300" y="440" text-anchor="middle">Match and weight the events</text>
+      <text class="ts" x="300" y="457" text-anchor="middle">attributable = matched_events × α</text>
+
+      <rect class="n sg" x="160" y="496" width="280" height="52"/>
+      <text class="tt" x="300" y="516" text-anchor="middle">Recompute consumer achievement</text>
+      <text class="ts" x="300" y="533" text-anchor="middle">draft Dependency Impact Note</text>
+
+      <polygon class="dia" points="300,566 424,610 300,654 176,610"/>
+      <text class="tt" x="300" y="606" text-anchor="middle">HOD approves</text>
+      <text class="tt" x="300" y="621" text-anchor="middle">adjustment?</text>
+
+      <rect class="n sg" x="140" y="676" width="320" height="52"/>
+      <text class="tt" x="300" y="696" text-anchor="middle">Adjusted band applied</text>
+      <text class="ts" x="300" y="713" text-anchor="middle">provider flagged · consumer credited · audit written</text>
+
+      <rect class="n" x="560" y="210" width="240" height="56"/>
+      <text class="tt" x="680" y="232" text-anchor="middle">No adjustment</text>
+      <text class="ts" x="680" y="249" text-anchor="middle">raw band stands, logged</text>
+
+      <rect class="n" x="560" y="582" width="240" height="56"/>
+      <text class="tt" x="680" y="604" text-anchor="middle">Adjustment discarded</text>
+      <text class="ts" x="680" y="621" text-anchor="middle">raw band stands, reason logged</text>
+
+      <line class="fl" x1="300" y1="60" x2="300" y2="68"/>
+      <line class="fl" x1="300" y1="148" x2="300" y2="188"/>
+      <line class="fl" x1="300" y1="268" x2="300" y2="302"/>
+      <line class="fl sig" x1="300" y1="394" x2="300" y2="416"/>
+      <line class="fl sig" x1="300" y1="472" x2="300" y2="492"/>
+      <line class="fl sig" x1="300" y1="548" x2="300" y2="562"/>
+      <line class="fl sig" x1="300" y1="654" x2="300" y2="672"/>
+      <text class="tm" x="308" y="172">Yes</text>
+      <text class="tm" x="308" y="292">Yes</text>
+      <text class="tm tsig" x="308" y="410">Yes</text>
+      <text class="tm tsig" x="308" y="668">Yes</text>
+
+      <path class="fl" d="M424,110 H680 V206"/>
+      <text class="tm" x="432" y="102">No</text>
+      <line class="fl" x1="424" y1="230" x2="556" y2="230"/>
+      <text class="tm" x="432" y="222">No</text>
+      <path class="fl" d="M436,350 H720 V270"/>
+      <text class="tm" x="444" y="342">No</text>
+      <line class="fl" x1="424" y1="610" x2="556" y2="610"/>
+      <text class="tm" x="432" y="602">No</text>
+    </svg>
+    </div>
+    <figcaption><b>FIG 5</b><span>Three tests must all pass before a score moves, and a human still has the last word. The "No" paths are not dead ends — each one writes a log entry, so the absence of an adjustment is as auditable as its presence.</span></figcaption>
+  </figure>
+
+  <div class="note sig">
+    <span class="lead">Design decision worth defending in the demo</span>
+    <p>The engine <strong>credits the consumer and flags the provider — it does not deduct from the provider twice.</strong> The HR Executive already scores 1 on their own late-delivery KPI; taking a further deduction for the downstream damage would punish one failure twice. Instead the provider's scorecard carries a visible <em>downstream impact</em> count, which is what the HOD actually needs to see when deciding where the real problem sits.</p>
+  </div>
+</section>
+
+<section id="s10">
+  <h2 class="sec"><em>10</em>Worked example — H1-2026</h2>
+  <p>Six monthly periods. The HR Executive delivered the attendance file on time in four of six months. Payroll ran on time in the same four. Two of the payroll failures fall inside the impact window of an attendance failure; the system matched them automatically from ERP timestamps.</p>
+
+  <h3 class="tag">Event matching</h3>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Period</th><th>Attendance file</th><th>Payroll run</th><th>Gap</th><th>Matched to link?</th></tr></thead>
+    <tbody>
+      <tr><td>Jan 2026</td><td>Day 2 — on time</td><td>Day 5 — on time</td><td class="num">—</td><td>No breach</td></tr>
+      <tr class="hl"><td>Feb 2026</td><td>Day 4 — late</td><td>Day 7 — late</td><td class="num">2 days</td><td><strong>Yes</strong> — inside 3-day window</td></tr>
+      <tr><td>Mar 2026</td><td>Day 2 — on time</td><td>Day 5 — on time</td><td class="num">—</td><td>No breach</td></tr>
+      <tr><td>Apr 2026</td><td>Day 1 — on time</td><td>Day 5 — on time</td><td class="num">—</td><td>No breach</td></tr>
+      <tr class="hl"><td>May 2026</td><td>Day 6 — late</td><td>Day 8 — late</td><td class="num">2 days</td><td><strong>Yes</strong> — inside 3-day window</td></tr>
+      <tr><td>Jun 2026</td><td>Day 2 — on time</td><td>Day 5 — on time</td><td class="num">—</td><td>No breach</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="formula">
+matched_events &nbsp;= 2 &nbsp;&nbsp;<i>(Feb, May)</i><br>
+attributable &nbsp;&nbsp;&nbsp;= 2 × 0.80 = <strong>1.60</strong><br>
+adjusted_actual = 4.00 + 1.60 = 5.60 of 6 &nbsp;→&nbsp; <strong>93.3%</strong> &nbsp;→&nbsp; band 3 &nbsp;<i>(raw was 66.7%, band 1)</i>
+  </div>
+
+  <h3 class="tag">Payroll Manager — full scorecard</h3>
+  <div class="tw">
+  <table>
+    <thead><tr><th>KPI</th><th>Measure</th><th class="num">Weight</th><th class="num">Raw</th><th class="num">Adjusted</th><th class="num">Weighted</th></tr></thead>
+    <tbody>
+      <tr class="hl"><td class="id">KPI-PR-01</td><td>Payroll disbursed by Day 5</td><td class="num">35</td><td class="num"><span class="band b1">1</span></td><td class="num"><span class="band b3">3</span></td><td class="num">1.05</td></tr>
+      <tr><td class="id">KPI-PR-02</td><td>Correction rate ≤ 1% of payslips</td><td class="num">25</td><td class="num"><span class="band b4">4</span></td><td class="num">—</td><td class="num">1.00</td></tr>
+      <tr><td class="id">KPI-PR-03</td><td>WPS submissions, zero MOHRE rejections</td><td class="num">20</td><td class="num"><span class="band b5">5</span></td><td class="num">—</td><td class="num">1.00</td></tr>
+      <tr><td class="id">KPI-PR-04</td><td>Cost per payslip processed (AED)</td><td class="num">10</td><td class="num"><span class="band b3">3</span></td><td class="num">—</td><td class="num">0.30</td></tr>
+      <tr><td class="id">KPI-PR-05</td><td>Team cross-training completion</td><td class="num">10</td><td class="num"><span class="band b3">3</span></td><td class="num">—</td><td class="num">0.30</td></tr>
+      <tr class="total"><td colspan="2">Weighted score — with dependency resolution</td><td class="num">100</td><td class="num"></td><td class="num"></td><td class="num">3.65</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="note sig">
+    <span class="lead">The slide that closes the deal</span>
+    <p>Same person. Same six months of actual output. <strong>Without dependency mapping the Payroll Manager scores 2.95 — "Meets expectations".</strong> With it he scores <strong>3.65 — "Exceeds expectations"</strong>, and the HR Executive's scorecard now carries two recorded downstream failures.</p>
+    <p>That gap is not a rounding artefact. It is the difference between an appraisal the manager argues with and one he signs — and between a root cause the HOD can see and one buried in a spreadsheet.</p>
+  </div>
+
+  <h3 class="tag">HR Executive — accountability side of the same link</h3>
+  <div class="tw">
+  <table>
+    <thead><tr><th>KPI</th><th>Measure</th><th class="num">Weight</th><th class="num">Band</th><th>Dependency record</th></tr></thead>
+    <tbody>
+      <tr class="hl"><td class="id">KPI-HR-01</td><td>Attendance file to Payroll by Day 2</td><td class="num">30</td><td class="num"><span class="band b1">1</span></td><td><strong>2 downstream failures caused</strong> — flagged on the department scorecard</td></tr>
+      <tr><td class="id">KPI-HR-02</td><td>Visa and labour card renewals before expiry</td><td class="num">30</td><td class="num"><span class="band b4">4</span></td><td>—</td></tr>
+      <tr><td class="id">KPI-HR-03</td><td>Time to fill approved vacancies</td><td class="num">25</td><td class="num"><span class="band b3">3</span></td><td>—</td></tr>
+      <tr><td class="id">KPI-HR-04</td><td>Employee file audit compliance</td><td class="num">15</td><td class="num"><span class="band b3">3</span></td><td>—</td></tr>
+      <tr class="total"><td colspan="2">Weighted score</td><td class="num">100</td><td class="num">2.85</td><td>Band 3 — Meets, with a flagged root cause</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Note what the flag does that a score cannot: the HR Executive still lands at "Meets", because three of four KPIs were delivered. But the department scorecard now shows exactly where a 15% efficiency target is leaking, and the HOD's next cycle can put a target on it.</p>
+</section>
+
+<section id="s11">
+  <h2 class="sec"><em>11</em>Business rules</h2>
+  <dl class="rules">
+    <div><dt>BR-01</dt><dd>Child weights on any scorecard must total exactly 100. Approval is blocked otherwise, with the shortfall shown.</dd></div>
+    <div><dt>BR-02</dt><dd>An individual scorecard carries a minimum of 4 and a maximum of 8 KPIs.</dd></div>
+    <div><dt>BR-03</dt><dd>A KPI cannot be edited after employee acknowledgment. A mid-cycle change creates version n+1 and re-enters approval and acknowledgment; all versions are retained.</dd></div>
+    <div><dt>BR-04</dt><dd>Employee acknowledgment is mandatory before scoring begins. Unacknowledged KPIs escalate to the HOD after 7 calendar days.</dd></div>
+    <div><dt>BR-05</dt><dd>A dependency link may only join two KPIs within the same cycle and the same legal entity. Cross-entity links are phase 2.</dd></div>
+    <div><dt>BR-06</dt><dd>Dependency resolution is single-hop. If A feeds B and B feeds C, only the directly declared link is evaluated — no transitive chains in phase 1.</dd></div>
+    <div><dt>BR-07</dt><dd>An adjustment may raise a consumer band by at most 2, and never above 5.</dd></div>
+    <div><dt>BR-08</dt><dd>An adjustment never reduces the provider's band. It writes a downstream-impact flag visible on the provider's individual and department scorecards.</dd></div>
+    <div><dt>BR-09</dt><dd>Every post-scoring rating change requires an approver identity, a reason of at least 20 characters, and a timestamp. No exceptions, including for administrators.</dd></div>
+    <div><dt>BR-10</dt><dd>ERP-sourced actuals are immutable. Corrections arrive as new records that supersede, and both remain queryable.</dd></div>
+    <div><dt>BR-11</dt><dd>An appraisal locks on employee acknowledgment. A dispute opens a review task and is recorded on the appraisal; it does not unlock the score.</dd></div>
+    <div><dt>BR-12</dt><dd>Cycles are fixed: H1 runs Jan 1 – Jun 30 with a review window of Jun 15 – Jul 15; H2 runs Jul 1 – Dec 31 with a review window of Dec 15 – Jan 15.</dd></div>
+    <div><dt>BR-13</dt><dd>A cycle cannot be locked while any scored KPI has an unresolved ERP sync failure or an undecided impact note.</dd></div>
+    <div><dt>BR-14</dt><dd>An employee's own manager cannot approve their own dependency adjustment where they are also the provider's manager; approval escalates one level.</dd></div>
+  </dl>
+</section>
+
+<section id="s12">
+  <h2 class="sec"><em>12</em>Functional requirements</h2>
+
+  <h3 class="tag">Cascade and setup</h3>
+  <div class="fr"><span class="fid">FR-01</span><span><b>Entity hierarchy</b><span class="d">Create and maintain a tree of legal entities, departments and projects under one tenant, with unlimited depth and a display of each node's weight share.</span></span></div>
+  <div class="fr"><span class="fid">FR-02</span><span><b>Cycle management</b><span class="d">Open, freeze, reopen and lock bi-annual cycles per tenant, with configurable review windows and automatic status transitions.</span></span></div>
+  <div class="fr"><span class="fid">FR-03</span><span><b>Goal cascade</b><span class="d">Allocate a parent objective across children by weight, with live validation that the allocation totals 100 before the scorecard can be submitted.</span></span></div>
+
+  <h3 class="tag">KPI lifecycle</h3>
+  <div class="fr"><span class="fid">FR-04</span><span><b>KPI definition</b><span class="d">Capture title, measure, unit, direction, target, weight, data source and evidence requirement, from a library template or freehand.</span></span></div>
+  <div class="fr"><span class="fid">FR-05</span><span><b>Dependency declaration</b><span class="d">Declare a link from any KPI to another in the same cycle and entity, specifying type, alpha and impact window, subject to both managers' agreement at approval.</span></span></div>
+  <div class="fr"><span class="fid">FR-06</span><span><b>Approval workflow</b><span class="d">Route a KPI set to the HOD with approve, reject-with-comment and return-for-rework outcomes, with notification and a visible SLA.</span></span></div>
+  <div class="fr"><span class="fid">FR-07</span><span><b>Employee acknowledgment</b><span class="d">Present the approved KPI set for e-signature acknowledgment, with a query path back to the manager and automatic escalation after 7 days.</span></span></div>
+  <div class="fr"><span class="fid">FR-08</span><span><b>Versioning</b><span class="d">Retain every version of a KPI with its approver and acknowledgment record; render a side-by-side diff on any mid-cycle revision.</span></span></div>
+
+  <h3 class="tag">Data and scoring</h3>
+  <div class="fr"><span class="fid">FR-09</span><span><b>ERP ingestion</b><span class="d">Pull actuals on schedule from a configured ERP endpoint or view, map metric codes to KPIs per tenant, and write append-only actual records with source references.</span></span></div>
+  <div class="fr"><span class="fid">FR-10</span><span><b>Manual capture</b><span class="d">Allow evidence-backed manual entry for KPIs with no ERP source, flagged distinctly everywhere the value appears.</span></span></div>
+  <div class="fr"><span class="fid">FR-11</span><span><b>Scoring engine</b><span class="d">Compute achievement against target by direction, apply the configured band scale, and roll weighted scores up the cascade to department, entity and group.</span></span></div>
+  <div class="fr"><span class="fid">FR-12</span><span><b>Dependency resolution</b><span class="d">Match provider breaches to consumer failures inside the impact window, compute attributable events, and generate a Dependency Impact Note for approval.</span></span></div>
+  <div class="fr"><span class="fid">FR-13</span><span><b>Adjustment approval</b><span class="d">Present the impact note with raw score, proposed score and the matched evidence; record the approve or reject decision with a mandatory reason.</span></span></div>
+
+  <h3 class="tag">Appraisal and visibility</h3>
+  <div class="fr"><span class="fid">FR-14</span><span><b>Appraisal generation</b><span class="d">Assemble the final appraisal from scored KPIs, adjustments, manager narrative and the employee's self-comments, ready for the review meeting.</span></span></div>
+  <div class="fr"><span class="fid">FR-15</span><span><b>Final acknowledgment</b><span class="d">Capture employee acknowledgment or dispute with comments; lock the record on acknowledgment and open a review task on dispute.</span></span></div>
+  <div class="fr"><span class="fid">FR-16</span><span><b>Dashboards</b><span class="d">Three levels — group and entity roll-up, department scorecard with dependency hot-spots, and individual progress against target with trend across cycles.</span></span></div>
+  <div class="fr"><span class="fid">FR-17</span><span><b>Dependency map</b><span class="d">Visualise declared links across a department, showing which roles are upstream bottlenecks by count of downstream impacts in the cycle.</span></span></div>
+  <div class="fr"><span class="fid">FR-18</span><span><b>Audit trail</b><span class="d">Record every state transition, score change and approval as an immutable event with actor, before, after, reason and timestamp; exportable per employee per cycle.</span></span></div>
+</section>
+
+<section id="s13">
+  <h2 class="sec"><em>13</em>Traceability to the client brief</h2>
+  <p>Each of the six requirements raised, mapped to what this single use case actually demonstrates on screen.</p>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Client requirement</th><th>Requirements</th><th>What they see in the demo</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Goal cascading</strong><br><span style="color:var(--ink-3)">company → project → department → individual</span></td><td class="id">FR-01 · FR-03</td><td>Group objective split to X Contracting, to HR &amp; Payroll, to two individual KPIs — with the weight validator refusing a 95% allocation live</td></tr>
+      <tr><td><strong>Interdependency mapping</strong><br><span style="color:var(--ink-3)">HR Executive → Payroll Manager</span></td><td class="id">FR-05 · FR-12 · FR-13 · FR-17</td><td>The exact example from the brief, matched from ERP timestamps, resolved into a 1 → 3 band adjustment with the HOD approving it on screen</td></tr>
+      <tr><td><strong>Appraisal cycle and 1–5 scoring</strong></td><td class="id">FR-02 · FR-11</td><td>H1-2026 cycle, June review window, banded scorecard rolling up to a 3.65 weighted score</td></tr>
+      <tr><td><strong>Workflows</strong><br><span style="color:var(--ink-3)">KPI approval, KPI acknowledgment, appraisal acknowledgment</span></td><td class="id">FR-06 · FR-07 · FR-14 · FR-15</td><td>All three, plus the rework and dispute paths and the version diff on a mid-cycle change</td></tr>
+      <tr><td><strong>Dashboards</strong><br><span style="color:var(--ink-3)">company, department, individual</span></td><td class="id">FR-16 · FR-17</td><td>Three levels, with the dependency hot-spot view that shows HR as the upstream bottleneck</td></tr>
+      <tr><td><strong>ERP integration</strong></td><td class="id">FR-09 · FR-10 · FR-18</td><td>Live pull of attendance and payroll timestamps, plus the flagged manual-entry path and full source provenance</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="s14">
+  <h2 class="sec"><em>14</em>Platform and non-functional requirements</h2>
+  <p>The commercial model is subscription, so the build has to be a product from the first line. Three decisions carry that:</p>
+  <ol class="steps">
+    <li><b>Single application, tenant-isolated data</b><span>One deployment serves every client. Every table carries <span class="mono">tenant_id</span> and every query is scoped at the data layer, not in application code. One client's cost of onboarding is a configuration record, not an environment.</span></li>
+    <li><b>Configuration over customisation</b><span>Band scales, cycle dates, weight limits, escalation SLAs, alpha defaults and the ERP field mapping are all tenant settings. A second client with a 1–10 scale and quarterly cycles is a form, not a branch.</span></li>
+    <li><b>Connector pattern for ERP</b><span>One connector interface with per-ERP adapters. The first adapter is written for this client's ERP; the second client reuses everything above the adapter line.</span></li>
+  </ol>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Attribute</th><th>Phase 1 target</th></tr></thead>
+    <tbody>
+      <tr><td>Scale</td><td>Designed for 5,000 employees per tenant; demo sized for 1 entity, 2 departments, 20 employees</td></tr>
+      <tr><td>Scoring run</td><td>Full cycle scoring for 5,000 employees under 10 minutes, executed as a background job</td></tr>
+      <tr><td>Availability</td><td>99.5% monthly; scheduled maintenance outside GST business hours</td></tr>
+      <tr><td>Data residency</td><td>UAE region hosting where the client requires it; encryption at rest and in transit</td></tr>
+      <tr><td>Access control</td><td>Role-based — employee, manager, HOD, HR admin, group admin; an employee sees only their own record and their direct reports'</td></tr>
+      <tr><td>Retention</td><td>Appraisal records and audit events retained 7 years; export per employee on request</td></tr>
+      <tr><td>Browser</td><td>Responsive web, current Chrome, Edge and Safari; no native app in phase 1</td></tr>
+      <tr><td>Language</td><td>English in phase 1, with the string layer externalised so Arabic is a translation pass, not a rebuild</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="s15">
+  <h2 class="sec"><em>15</em>Demo storyboard</h2>
+  <p>Twelve minutes, built around one narrative. Resist the urge to show breadth — the prototype wins on the thing nobody else shows.</p>
+  <ol class="steps">
+    <li><b>Open on the group dashboard — 60s</b><span>Operational efficiency at 15% target, X Contracting tracking behind. Click through to HR &amp; Payroll. Say nothing about features yet.</span></li>
+    <li><b>Show the cascade — 90s</b><span>Walk down the four levels. Try to submit with weights at 95% and let the validator refuse it. That one refusal establishes the system is an accounting structure, not a form.</span></li>
+    <li><b>The KPI pair and the link — 2 min</b><span>Open the Payroll Manager's KPI-PR-01 and show the declared dependency on KPI-HR-01, with alpha and impact window agreed at approval. This is the first thing they have not seen elsewhere.</span></li>
+    <li><b>Workflows in 60 seconds</b><span>KPI set awaiting HOD approval, employee acknowledgment e-signed, one mid-cycle revision showing the version diff. Move fast — these are table stakes and they know it.</span></li>
+    <li><b>Pull the ERP data live — 90s</b><span>Trigger an on-demand sync. Six months of attendance and payroll timestamps land in the actuals table with source references. Nobody typed anything.</span></li>
+    <li><b>Run scoring, show the raw result — 60s</b><span>Payroll Manager at 2.95, "Meets expectations". Pause on it. Ask whether that is the right answer.</span></li>
+    <li><b>Resolve the dependency — 3 min</b><span>Open the impact note. February and May, matched automatically, two days apart, inside the window. Show attributable = 1.60, the recomputed 93.3%, the proposed 1 → 3. Approve it as the HOD with a reason. Watch the score move to 3.65.</span></li>
+    <li><b>Turn to the other side — 60s</b><span>Open the HR Executive's scorecard. Two downstream failures recorded. Then the department dependency map, with HR sitting as the upstream bottleneck. This is the moment the HOD in the room understands what they are buying.</span></li>
+    <li><b>Close on the audit trail — 60s</b><span>Every transition, every approval, every reason, every timestamp. Then stop talking.</span></li>
+  </ol>
+  <div class="note">
+    <span class="lead">Questions to expect, and the honest answers</span>
+    <p><strong>"Who decides alpha?"</strong> — Both managers, at KPI approval, before the cycle starts. Never retrospectively. That is a rule in the system, not a policy in a document.</p>
+    <p><strong>"Can a manager game this?"</strong> — The link must be declared before the cycle and approved by the HOD, the evidence comes from ERP timestamps rather than claims, and the uplift is capped at two bands. Gaming it requires forging the ERP.</p>
+    <p><strong>"What if the dependency chain is longer?"</strong> — Phase 1 resolves one hop. Say so plainly; multi-hop is a real design problem and pretending otherwise costs credibility in the room.</p>
+  </div>
+</section>
+
+<section id="s16">
+  <h2 class="sec"><em>16</em>Phase 2 backlog</h2>
+  <p>Held back deliberately, and worth naming in the meeting so the client sees a roadmap rather than a ceiling.</p>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Capability</th><th>Why it waits</th></tr></thead>
+    <tbody>
+      <tr><td>Multi-hop dependency chains</td><td>Attribution across three or more roles needs a decay model and a cycle-detection guard; it is a design problem, not a build problem</td></tr>
+      <tr><td>Cross-entity dependency links</td><td>Shared-services dependencies between subsidiaries raise approval-authority questions the client must answer first</td></tr>
+      <tr><td>360° and peer feedback</td><td>Orthogonal to the cascade; adds scope without strengthening the core argument</td></tr>
+      <tr><td>Competency framework</td><td>Needs the client's own competency dictionary as an input</td></tr>
+      <tr><td>Bell-curve normalisation</td><td>Politically loaded; ship only on explicit request with the distribution rules written down</td></tr>
+      <tr><td>Increment and bonus modelling</td><td>Requires payroll write-back, which changes the integration from read-only to bidirectional</td></tr>
+      <tr><td>Arabic localisation and mobile app</td><td>Straightforward once the string layer and API are stable</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<footer>
+  <p><strong>Document control.</strong> SRS / UC-01 v1.0, prepared for a prototype demonstration. Scope frozen as stated in section 2; changes to sections 8, 9 or 11 require re-baselining the worked example in section 10, as the demonstrated numbers depend directly on the band thresholds and the alpha value.</p>
+  <p>Entity names, personas and figures are illustrative and modelled on the scenario described in the client brief.</p>
+</footer>
+
+</main>
+</div>
+</div>
