@@ -76,3 +76,33 @@ accounts (`HATCO`, `ICEM`, `CIMAC`, `PANAGIA`, `TJJ & Co.`, `QASSIM`,
   separately in the same list with its real activity.
 - Duplicate rows are transaction-level repeats of the same party, kept as-is.
   `Rows in source list` shows how often each company appears.
+
+## Update — new-account diff (2026-10-02)
+
+A second export (contact-level, 3,387 rows / 1,302 distinct `PARTYMST_DESC`) was
+compared against the baseline list of 1,292 names.
+
+**11 new accounts.** Only 3 are genuinely new companies; the other 8 are
+additional legal entities of groups already in the customer base.
+
+| New account | Status | Industry |
+|---|---|---|
+| AUTOPRO GLOBAL L.L.C- FZCO | New company | Automotive Parts Trading |
+| PADEL KINGDOM SPORTS & RECREATIONAL CLUB LLC | New company | Sports & Recreation |
+| TRUENORTH FOUNDATION | New company | Unclassified (no public record) |
+| ABDULWAHED BIN SHABIB FOR TRADING AND SERVICES LLC | New entity | Trading & Distribution |
+| AQUAPLEX TRADING CO. WLL | New entity | Trading & Distribution |
+| COOL LINE EXPRESS COMPANY FOR AUTO PARTS AND ACCESSORIES | New entity | Automotive Parts Trading |
+| COOLLINE RADIATORS AND AC SPARE PARTS TRADING W.L.L | New entity | Automotive Parts Trading |
+| NEW REVIVE GREEN TECHNOLOGY WATER PURIFICATION LLC | New entity (MEF International) | Water Treatment |
+| TEE DEE STEEL & METALS FZE | New entity | Manufacturing - Metals |
+| VTS MEA AIR SYSTEM SERVICES L.L.C | New entity | HVAC Services |
+| WORLEYPARSONS ENGINEERING CONSULTANCIES CO. | New entity | Engineering Consultancy |
+
+Other movement: `ABDUL WAHED BIN SHABIB TRADING L.L.C` dropped out (4 rows), and
+4 extra contacts were added at 3 existing accounts (Malta Auto Spare Parts +2,
+Mahaseel Investment +1, Safe Line Electrical & Mechanical +1).
+Row reconciliation: 3,358 − 4 + 29 + 4 = 3,387.
+
+Outputs: `data/New_Accounts_vs_Baseline.xlsx`, `data/new_accounts_vs_baseline.csv`,
+`data/new_party_list_unique.txt`.
